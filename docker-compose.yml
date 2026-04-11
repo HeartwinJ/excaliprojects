@@ -1,3 +1,5 @@
+name: excaliprojects
+
 services:
   web:
     build: .
