@@ -43,3 +43,6 @@ coverage/
 
 # Docker volume artefacts (local dev)
 /data/
+
+# Claude Code workspace artefacts
+.claude/
