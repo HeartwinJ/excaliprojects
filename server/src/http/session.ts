@@ -30,5 +30,6 @@ export const sessionMiddleware: RequestHandler = session({
 declare module "express-session" {
   interface SessionData {
     userId?: string;
+    csrfInitialised?: boolean;
   }
 }

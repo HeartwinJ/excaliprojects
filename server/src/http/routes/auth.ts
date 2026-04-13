@@ -21,7 +21,12 @@ const loginLimiter = rateLimit({
 });
 
 authRouter.get("/api/csrf", (req, res) => {
-  const token = generateToken(req, res);
+  // touch the session so a stable session id is persisted across requests,
+  // which csrf-csrf uses to scope the token.
+  if (!req.session.csrfInitialised) {
+    req.session.csrfInitialised = true;
+  }
+  const token = generateToken(req, res, true, false);
   res.json({ csrfToken: token });
 });
 
