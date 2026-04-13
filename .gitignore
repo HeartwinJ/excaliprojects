@@ -46,3 +46,6 @@ coverage/
 
 # Claude Code workspace artefacts
 .claude/
+
+# Local-only compose overrides (never commit)
+docker-compose.override.yml
