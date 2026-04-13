@@ -29,6 +29,7 @@ COPY client/package.json client/package.json
 RUN npm install --omit=dev --no-audit --no-fund
 
 COPY --from=build /app/server/dist ./server/dist
+COPY --from=build /app/server/migrations ./server/migrations
 COPY --from=build /app/client/dist ./client/dist
 
 RUN mkdir -p /data/files && chown -R node:node /data
