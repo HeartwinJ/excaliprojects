@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import cookieParser from "cookie-parser";
 import { pinoHttp } from "pino-http";
 import { config } from "./config.js";
@@ -8,9 +8,13 @@ import { pool } from "./db/pool.js";
 import { sessionMiddleware } from "./http/session.js";
 import { securityHeaders } from "./http/security.js";
 import { healthRouter } from "./http/health.js";
+import { authRouter, requireAuth } from "./http/routes/auth.js";
+import { invalidCsrfTokenError } from "./http/csrf.js";
+import { seedInitialUser } from "./boot/seed.js";
 
 async function main(): Promise<void> {
   await runMigrations();
+  await seedInitialUser();
 
   const app = express();
 
@@ -24,13 +28,23 @@ async function main(): Promise<void> {
   app.use(sessionMiddleware);
 
   app.use(healthRouter);
+  app.use(authRouter);
 
-  app.get("/api/ping", (req, res) => {
-    if (!req.session.userId) {
-      res.status(401).json({ error: "unauthenticated" });
+  app.get("/api/ping", requireAuth, (_req, res) => {
+    res.json({ ok: true });
+  });
+
+  app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
+    if (err === invalidCsrfTokenError) {
+      res.status(403).json({ error: "invalid csrf token" });
       return;
     }
-    res.json({ ok: true });
+    next(err);
+  });
+
+  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    logger.error({ err }, "unhandled error");
+    res.status(500).json({ error: "internal server error" });
   });
 
   const server = app.listen(config.APP_PORT, () => {
