@@ -1,0 +1,113 @@
+.board-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.board-card:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+}
+
+.board-card__thumb {
+  aspect-ratio: 4 / 3;
+  background: var(--color-surface-muted);
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+}
+
+.board-card__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.board-card__thumb-placeholder {
+  font-size: 3rem;
+  color: var(--color-primary);
+  opacity: 0.55;
+}
+
+.board-card__body {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.board-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.board-card__title {
+  flex: 1;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-card__title:hover {
+  text-decoration: underline;
+}
+
+.board-card__fav {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.board-card__fav[aria-pressed="true"] {
+  color: #f5b700;
+}
+
+.board-card__meta {
+  font-size: 0.8rem;
+  color: var(--color-text-subtle);
+}
+
+.board-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+.board-card__btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.board-card__btn:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.board-card__btn--danger:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
