@@ -16,16 +16,14 @@ import { requireAuth } from "./auth.js";
 
 export const boardsRouter = Router();
 
-boardsRouter.use(requireAuth);
-
 const nameSchema = z.string().trim().min(1).max(200);
 
-boardsRouter.get("/api/boards/recent", async (req, res) => {
+boardsRouter.get("/api/boards/recent", requireAuth, async (req, res) => {
   const boards = await listRecentBoards(req.session.userId!);
   res.json(boards);
 });
 
-boardsRouter.post("/api/projects/:projectId/boards", doubleCsrfProtection, async (req, res) => {
+boardsRouter.post("/api/projects/:projectId/boards", requireAuth, doubleCsrfProtection, async (req, res) => {
   const parsed = z.object({ name: nameSchema.default("Untitled") }).safeParse(req.body ?? {});
   if (!parsed.success) {
     res.status(400).json({ error: "invalid name" });
@@ -39,7 +37,7 @@ boardsRouter.post("/api/projects/:projectId/boards", doubleCsrfProtection, async
   res.status(201).json(board);
 });
 
-boardsRouter.get("/api/boards/:id", async (req, res) => {
+boardsRouter.get("/api/boards/:id", requireAuth, async (req, res) => {
   const board = await findBoardById(req.params.id!, req.session.userId!);
   if (!board) {
     res.status(404).json({ error: "not found" });
@@ -58,7 +56,7 @@ const patchSchema = z
     message: "no fields to update",
   });
 
-boardsRouter.patch("/api/boards/:id", doubleCsrfProtection, async (req, res) => {
+boardsRouter.patch("/api/boards/:id", requireAuth, doubleCsrfProtection, async (req, res) => {
   const parsed = patchSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "invalid payload" });
@@ -94,7 +92,7 @@ boardsRouter.patch("/api/boards/:id", doubleCsrfProtection, async (req, res) => 
   res.json(summary);
 });
 
-boardsRouter.post("/api/boards/:id/duplicate", doubleCsrfProtection, async (req, res) => {
+boardsRouter.post("/api/boards/:id/duplicate", requireAuth, doubleCsrfProtection, async (req, res) => {
   const copy = await duplicateBoard(req.params.id!, req.session.userId!);
   if (!copy) {
     res.status(404).json({ error: "not found" });
@@ -103,7 +101,7 @@ boardsRouter.post("/api/boards/:id/duplicate", doubleCsrfProtection, async (req,
   res.status(201).json(copy);
 });
 
-boardsRouter.delete("/api/boards/:id", doubleCsrfProtection, async (req, res) => {
+boardsRouter.delete("/api/boards/:id", requireAuth, doubleCsrfProtection, async (req, res) => {
   const ok = await softDeleteBoard(req.params.id!, req.session.userId!);
   if (!ok) {
     res.status(404).json({ error: "not found" });
@@ -112,7 +110,7 @@ boardsRouter.delete("/api/boards/:id", doubleCsrfProtection, async (req, res) =>
   res.status(204).end();
 });
 
-boardsRouter.put("/api/boards/:id/scene", doubleCsrfProtection, async (req, res) => {
+boardsRouter.put("/api/boards/:id/scene", requireAuth, doubleCsrfProtection, async (req, res) => {
   const scene = req.body;
   if (scene === null || typeof scene !== "object") {
     res.status(400).json({ error: "scene must be an object" });

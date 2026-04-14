@@ -16,14 +16,12 @@ export const projectsRouter = Router();
 
 const nameSchema = z.string().trim().min(1).max(200);
 
-projectsRouter.use(requireAuth);
-
-projectsRouter.get("/api/projects", async (req, res) => {
+projectsRouter.get("/api/projects", requireAuth, async (req, res) => {
   const projects = await listProjects(req.session.userId!);
   res.json(projects);
 });
 
-projectsRouter.post("/api/projects", doubleCsrfProtection, async (req, res) => {
+projectsRouter.post("/api/projects", requireAuth, doubleCsrfProtection, async (req, res) => {
   const parsed = z.object({ name: nameSchema }).safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "invalid name" });
@@ -33,7 +31,7 @@ projectsRouter.post("/api/projects", doubleCsrfProtection, async (req, res) => {
   res.status(201).json(project);
 });
 
-projectsRouter.patch("/api/projects/:id", doubleCsrfProtection, async (req, res) => {
+projectsRouter.patch("/api/projects/:id", requireAuth, doubleCsrfProtection, async (req, res) => {
   const parsed = z.object({ name: nameSchema }).safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "invalid name" });
@@ -47,7 +45,7 @@ projectsRouter.patch("/api/projects/:id", doubleCsrfProtection, async (req, res)
   res.json(updated);
 });
 
-projectsRouter.post("/api/projects/reorder", doubleCsrfProtection, async (req, res) => {
+projectsRouter.post("/api/projects/reorder", requireAuth, doubleCsrfProtection, async (req, res) => {
   const parsed = z.object({ ids: z.array(z.string().uuid()).min(1) }).safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "invalid payload" });
@@ -57,7 +55,7 @@ projectsRouter.post("/api/projects/reorder", doubleCsrfProtection, async (req, r
   res.status(204).end();
 });
 
-projectsRouter.delete("/api/projects/:id", doubleCsrfProtection, async (req, res) => {
+projectsRouter.delete("/api/projects/:id", requireAuth, doubleCsrfProtection, async (req, res) => {
   const ok = await softDeleteProject(req.params.id!, req.session.userId!);
   if (!ok) {
     res.status(404).json({ error: "not found" });
@@ -66,7 +64,7 @@ projectsRouter.delete("/api/projects/:id", doubleCsrfProtection, async (req, res
   res.status(204).end();
 });
 
-projectsRouter.get("/api/projects/:id", async (req, res) => {
+projectsRouter.get("/api/projects/:id", requireAuth, async (req, res) => {
   const project = await findProjectById(req.params.id!, req.session.userId!);
   if (!project) {
     res.status(404).json({ error: "not found" });
@@ -75,7 +73,7 @@ projectsRouter.get("/api/projects/:id", async (req, res) => {
   res.json(project);
 });
 
-projectsRouter.get("/api/projects/:id/boards", async (req, res) => {
+projectsRouter.get("/api/projects/:id/boards", requireAuth, async (req, res) => {
   const project = await findProjectById(req.params.id!, req.session.userId!);
   if (!project) {
     res.status(404).json({ error: "not found" });
