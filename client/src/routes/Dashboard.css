@@ -17,38 +17,83 @@
   margin: 0;
   color: var(--color-text-muted);
   max-width: 42rem;
-  line-height: 1.5;
 }
 
-.dashboard__placeholder {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-  gap: var(--space-4);
+.dashboard__error {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 0.9rem;
 }
 
-.dashboard__placeholder-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  box-shadow: var(--shadow-sm);
+.dashboard__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.dashboard__placeholder-card h2 {
-  margin: 0 0 var(--space-3) 0;
+.dashboard__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.dashboard__section-head h2 {
+  margin: 0;
   font-size: 1.05rem;
   color: var(--color-text);
 }
 
-.dashboard__placeholder-card ul {
-  margin: 0;
-  padding-left: 1.1rem;
+.dashboard__muted {
   color: var(--color-text-muted);
-  line-height: 1.7;
+  margin: 0;
+}
+
+.dashboard__grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.dashboard__grid--projects {
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+
+.dashboard__grid--boards {
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.dashboard__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.dashboard__field > span {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.dashboard__field input {
+  appearance: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.dashboard__field input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 @media (max-width: 480px) {
   .dashboard {
     padding: var(--space-4) var(--space-3);
+    gap: var(--space-5);
   }
 }
