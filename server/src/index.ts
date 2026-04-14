@@ -11,6 +11,7 @@ import { healthRouter } from "./http/health.js";
 import { authRouter, requireAuth } from "./http/routes/auth.js";
 import { invalidCsrfTokenError } from "./http/csrf.js";
 import { seedInitialUser } from "./boot/seed.js";
+import { mountClient } from "./http/static.js";
 
 async function main(): Promise<void> {
   await runMigrations();
@@ -33,6 +34,8 @@ async function main(): Promise<void> {
   app.get("/api/ping", requireAuth, (_req, res) => {
     res.json({ ok: true });
   });
+
+  mountClient(app);
 
   app.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
     if (err === invalidCsrfTokenError) {

@@ -1,7 +1,12 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
-import { findUserByUsername, findUserById, verifyPassword } from "../../repos/users.js";
+import {
+  findUserByUsername,
+  findUserById,
+  verifyPassword,
+  updateThemePreference,
+} from "../../repos/users.js";
 import { doubleCsrfProtection, generateToken } from "../csrf.js";
 import { logger } from "../../logger.js";
 
@@ -98,6 +103,24 @@ authRouter.get("/api/me", async (req, res) => {
     username: user.username,
     themePreference: user.theme_preference,
   });
+});
+
+const themeSchema = z.object({
+  theme: z.enum(["system", "light", "dark"]),
+});
+
+authRouter.patch("/api/me/theme", doubleCsrfProtection, async (req, res) => {
+  if (!req.session.userId) {
+    res.status(401).json({ error: "unauthenticated" });
+    return;
+  }
+  const parsed = themeSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "invalid theme" });
+    return;
+  }
+  await updateThemePreference(req.session.userId, parsed.data.theme);
+  res.status(204).end();
 });
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
