@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./auth/AuthProvider";
 import { Login } from "./routes/Login";
 import { Dashboard } from "./routes/Dashboard";
+import { ProjectView } from "./routes/ProjectView";
 import { TopBar } from "./components/TopBar";
 
 function FullscreenSpinner(): JSX.Element {
@@ -36,6 +37,14 @@ export default function App(): JSX.Element {
           element={
             <RequireAuth>
               <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/projects/:projectId"
+          element={
+            <RequireAuth>
+              <ProjectView />
             </RequireAuth>
           }
         />
