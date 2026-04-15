@@ -36,4 +36,19 @@ export const boardsApi = {
     apiFetch<void>(`/api/boards/${id}`, { method: "DELETE" }),
   saveScene: (id: string, scene: unknown): Promise<{ updatedAt: string }> =>
     apiFetch<{ updatedAt: string }>(`/api/boards/${id}/scene`, { method: "PUT", body: scene }),
+  uploadThumbnail: async (id: string, png: Blob): Promise<{ thumbnail_path: string }> => {
+    const csrfRes = await fetch("/api/csrf", { credentials: "include" });
+    const { csrfToken } = (await csrfRes.json()) as { csrfToken: string };
+    const res = await fetch(`/api/boards/${id}/thumbnail`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "content-type": "image/png",
+        "x-csrf-token": csrfToken,
+      },
+      body: png,
+    });
+    if (!res.ok) throw new Error(`thumbnail upload failed: ${res.status}`);
+    return (await res.json()) as { thumbnail_path: string };
+  },
 };

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { exportToBlob } from "@excalidraw/excalidraw";
 import { boardsApi, type Board } from "../api/boards";
 import { ApiError } from "../api/client";
 import { useTheme } from "../theme/ThemeProvider";
@@ -51,6 +52,30 @@ export function BoardEditor(): JSX.Element {
     };
   }, [boardId]);
 
+  const uploadThumbnailFor = useCallback(
+    async (scene: SceneSnapshot) => {
+      if (scene.elements.length === 0) return;
+      try {
+        const blob = await exportToBlob({
+          elements: scene.elements,
+          appState: {
+            ...scene.appState,
+            exportBackground: true,
+            exportWithDarkMode: false,
+            viewBackgroundColor: scene.appState.viewBackgroundColor ?? "#ffffff",
+          },
+          files: scene.files,
+          getDimensions: () => ({ width: 400, height: 300 }),
+          mimeType: "image/png",
+        });
+        await boardsApi.uploadThumbnail(boardId, blob);
+      } catch (err) {
+        console.warn("thumbnail upload failed", err);
+      }
+    },
+    [boardId]
+  );
+
   const flushSave = useCallback(async () => {
     const scene = pendingScene.current;
     if (!scene) return;
@@ -66,11 +91,12 @@ export function BoardEditor(): JSX.Element {
         files: scene.files,
       });
       setStatus("saved");
+      void uploadThumbnailFor(scene);
     } catch (err) {
       console.error("save failed", err);
       setStatus("error");
     }
-  }, [boardId]);
+  }, [boardId, uploadThumbnailFor]);
 
   const debouncedSave = useDebouncedCallback(() => {
     void flushSave();
