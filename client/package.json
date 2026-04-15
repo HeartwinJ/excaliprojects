@@ -10,6 +10,7 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "^0.17.6",
     "@fontsource/assistant": "^5.0.19",
     "@fontsource/cascadia-code": "^5.0.18",
     "react": "^18.3.1",
