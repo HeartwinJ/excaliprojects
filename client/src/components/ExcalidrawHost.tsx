@@ -6,7 +6,6 @@ import type {
 } from "@excalidraw/excalidraw/types/types";
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { Excalidraw, THEME } from "@excalidraw/excalidraw";
-import "@excalidraw/excalidraw/index.css";
 
 export interface SceneSnapshot {
   elements: readonly ExcalidrawElement[];
