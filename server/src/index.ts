@@ -26,7 +26,7 @@ async function main(): Promise<void> {
 
   app.use(pinoHttp({ logger }));
   app.use(securityHeaders);
-  app.use(express.json({ limit: "2mb" }));
+  app.use(express.json({ limit: `${config.MAX_UPLOAD_MB}mb` }));
   app.use(cookieParser(config.SESSION_SECRET));
   app.use(sessionMiddleware);
 
