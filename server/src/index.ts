@@ -11,6 +11,7 @@ import { healthRouter } from "./http/health.js";
 import { authRouter, requireAuth } from "./http/routes/auth.js";
 import { projectsRouter } from "./http/routes/projects.js";
 import { boardsRouter } from "./http/routes/boards.js";
+import { thumbnailsRouter } from "./http/routes/thumbnails.js";
 import { invalidCsrfTokenError } from "./http/csrf.js";
 import { seedInitialUser } from "./boot/seed.js";
 import { mountClient } from "./http/static.js";
@@ -34,6 +35,7 @@ async function main(): Promise<void> {
   app.use(authRouter);
   app.use(projectsRouter);
   app.use(boardsRouter);
+  app.use(thumbnailsRouter);
 
   app.get("/api/ping", requireAuth, (_req, res) => {
     res.json({ ok: true });
