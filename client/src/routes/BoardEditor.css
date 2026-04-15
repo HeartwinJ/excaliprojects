@@ -1,0 +1,80 @@
+.board-editor {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 3.25rem); /* minus topbar */
+}
+
+.board-editor--loading,
+.board-editor--error {
+  display: grid;
+  place-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.board-editor__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.board-editor__back {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.board-editor__back:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.board-editor__name {
+  flex: 1;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.save {
+  font-size: 0.82rem;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.save--saving {
+  color: var(--color-primary);
+}
+
+.save--saved {
+  color: var(--color-success);
+}
+
+.save--error {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.board-editor__canvas {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.board-editor__canvas :global(.excalidraw) {
+  height: 100%;
+}
+
+@media (max-width: 480px) {
+  .board-editor__bar {
+    padding: var(--space-2);
+  }
+}

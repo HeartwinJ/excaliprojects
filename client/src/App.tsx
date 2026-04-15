@@ -3,6 +3,7 @@ import { useAuth } from "./auth/AuthProvider";
 import { Login } from "./routes/Login";
 import { Dashboard } from "./routes/Dashboard";
 import { ProjectView } from "./routes/ProjectView";
+import { BoardEditor } from "./routes/BoardEditor";
 import { TopBar } from "./components/TopBar";
 
 function FullscreenSpinner(): JSX.Element {
@@ -45,6 +46,14 @@ export default function App(): JSX.Element {
           element={
             <RequireAuth>
               <ProjectView />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/boards/:boardId"
+          element={
+            <RequireAuth>
+              <BoardEditor />
             </RequireAuth>
           }
         />
