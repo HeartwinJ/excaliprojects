@@ -12,7 +12,7 @@ export interface BoardRecord {
   deleted_at: Date | null;
 }
 
-export type BoardSummary = Omit<BoardRecord, "scene_json">;
+export type BoardSummary = Omit<BoardRecord, "scene_json"> & { save_count?: number };
 
 function summaryColumns(alias = ""): string {
   const p = alias ? `${alias}.` : "";
@@ -160,13 +160,16 @@ export async function saveBoardScene(
   id: string,
   ownerId: string,
   scene: unknown
-): Promise<BoardSummary | undefined> {
-  const { rows } = await pool.query<BoardSummary>(
-    `update boards b set scene_json = $3::jsonb, updated_at = now()
+): Promise<(BoardSummary & { save_count: number }) | undefined> {
+  const { rows } = await pool.query<BoardSummary & { save_count: number }>(
+    `update boards b set
+        scene_json = $3::jsonb,
+        save_count = b.save_count + 1,
+        updated_at = now()
      from projects p
      where b.id = $1 and p.id = b.project_id and p.owner_id = $2
        and b.deleted_at is null and p.deleted_at is null
-     returning ${summaryColumns("b")}`,
+     returning ${summaryColumns("b")}, b.save_count`,
     [id, ownerId, JSON.stringify(scene)]
   );
   return rows[0];
