@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { projectsApi, type Project } from "../api/projects";
 import { boardsApi, type BoardSummary } from "../api/boards";
+import { tagsApi, type SearchHit } from "../api/tags";
 import { ApiError } from "../api/client";
 import { Button } from "../components/Button";
 import { Modal } from "../components/Modal";
 import { ProjectCard } from "../components/ProjectCard";
 import { BoardCard } from "../components/BoardCard";
+import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import "./Dashboard.css";
 
 interface RenameState {
@@ -25,6 +28,20 @@ export function Dashboard(): JSX.Element {
   const [newName, setNewName] = useState("");
   const [rename, setRename] = useState<RenameState | null>(null);
   const [renameValue, setRenameValue] = useState("");
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchHits, setSearchHits] = useState<SearchHit[] | null>(null);
+
+  const runSearch = useDebouncedCallback((q: string) => {
+    if (q.trim().length === 0) {
+      setSearchHits(null);
+      return;
+    }
+    void tagsApi
+      .search(q.trim())
+      .then(setSearchHits)
+      .catch(() => setSearchHits([]));
+  }, 200);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -127,55 +144,82 @@ export function Dashboard(): JSX.Element {
         <p>Organise your drawings into projects and boards.</p>
       </section>
 
+      <div className="dashboard__search">
+        <input
+          type="search"
+          placeholder="Search projects, boards, and tags…"
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            runSearch(e.target.value);
+          }}
+        />
+      </div>
+
       {error && <div className="dashboard__error">{error}</div>}
 
-      <section className="dashboard__section">
-        <header className="dashboard__section-head">
-          <h2>Projects</h2>
-          <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
-            + New project
-          </Button>
-        </header>
-        {loading ? (
-          <p className="dashboard__muted">Loading…</p>
-        ) : projects.length === 0 ? (
-          <p className="dashboard__muted">No projects yet. Create one to get started.</p>
-        ) : (
-          <div className="dashboard__grid dashboard__grid--projects">
-            {projects.map((p) => (
-              <ProjectCard
-                key={p.id}
-                id={p.id}
-                name={p.name}
-                onRename={() => {
-                  setRename({ id: p.id, currentName: p.name });
-                  setRenameValue(p.name);
-                }}
-                onDelete={() => void handleDelete(p)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {recent.length > 0 && (
+      {searchHits !== null ? (
         <section className="dashboard__section">
           <header className="dashboard__section-head">
-            <h2>Recent boards</h2>
+            <h2>Search results</h2>
           </header>
-          <div className="dashboard__grid dashboard__grid--boards">
-            {recent.map((b) => (
-              <BoardCard
-                key={b.id}
-                board={b}
-                onRename={() => void handleBoardRename(b)}
-                onToggleFavourite={() => void handleBoardFavourite(b)}
-                onDuplicate={() => void handleBoardDuplicate(b)}
-                onDelete={() => void handleBoardDelete(b)}
-              />
-            ))}
-          </div>
+          {searchHits.length === 0 ? (
+            <p className="dashboard__muted">No matches.</p>
+          ) : (
+            <SearchResults hits={searchHits} />
+          )}
         </section>
+      ) : (
+        <>
+          <section className="dashboard__section">
+            <header className="dashboard__section-head">
+              <h2>Projects</h2>
+              <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
+                + New project
+              </Button>
+            </header>
+            {loading ? (
+              <p className="dashboard__muted">Loading…</p>
+            ) : projects.length === 0 ? (
+              <p className="dashboard__muted">No projects yet. Create one to get started.</p>
+            ) : (
+              <div className="dashboard__grid dashboard__grid--projects">
+                {projects.map((p) => (
+                  <ProjectCard
+                    key={p.id}
+                    id={p.id}
+                    name={p.name}
+                    onRename={() => {
+                      setRename({ id: p.id, currentName: p.name });
+                      setRenameValue(p.name);
+                    }}
+                    onDelete={() => void handleDelete(p)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {recent.length > 0 && (
+            <section className="dashboard__section">
+              <header className="dashboard__section-head">
+                <h2>Recent boards</h2>
+              </header>
+              <div className="dashboard__grid dashboard__grid--boards">
+                {recent.map((b) => (
+                  <BoardCard
+                    key={b.id}
+                    board={b}
+                    onRename={() => void handleBoardRename(b)}
+                    onToggleFavourite={() => void handleBoardFavourite(b)}
+                    onDuplicate={() => void handleBoardDuplicate(b)}
+                    onDelete={() => void handleBoardDelete(b)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
       <Modal
@@ -239,5 +283,33 @@ export function Dashboard(): JSX.Element {
         </label>
       </Modal>
     </div>
+  );
+}
+
+function SearchResults({ hits }: { hits: SearchHit[] }): JSX.Element {
+  return (
+    <ul className="dashboard__hits">
+      {hits.map((h) =>
+        h.kind === "project" ? (
+          <li key={`p-${h.id}`} className="dashboard__hit">
+            <Link to={`/projects/${h.id}`}>
+              <span className="dashboard__hit-kind">Project</span>
+              <span className="dashboard__hit-name">{h.name}</span>
+            </Link>
+          </li>
+        ) : (
+          <li key={`b-${h.id}`} className="dashboard__hit">
+            <Link to={`/boards/${h.id}`}>
+              <span className="dashboard__hit-kind">Board</span>
+              <span className="dashboard__hit-name">{h.name}</span>
+              <span className="dashboard__hit-meta">
+                in {h.project_name}
+                {h.tags.length > 0 && ` · ${h.tags.join(", ")}`}
+              </span>
+            </Link>
+          </li>
+        )
+      )}
+    </ul>
   );
 }
