@@ -11,6 +11,7 @@ import {
   setBoardFavourite,
   softDeleteBoard,
 } from "../../repos/boards.js";
+import { maybeAutoSnapshot } from "../../repos/versions.js";
 import { doubleCsrfProtection } from "../csrf.js";
 import { requireAuth } from "./auth.js";
 
@@ -121,5 +122,6 @@ boardsRouter.put("/api/boards/:id/scene", requireAuth, doubleCsrfProtection, asy
     res.status(404).json({ error: "not found" });
     return;
   }
+  void maybeAutoSnapshot(updated.id, scene, updated.save_count).catch(() => undefined);
   res.status(200).json({ updatedAt: updated.updated_at });
 });

@@ -13,6 +13,7 @@ import { projectsRouter } from "./http/routes/projects.js";
 import { boardsRouter } from "./http/routes/boards.js";
 import { thumbnailsRouter } from "./http/routes/thumbnails.js";
 import { tagsRouter } from "./http/routes/tags.js";
+import { versionsRouter } from "./http/routes/versions.js";
 import { invalidCsrfTokenError } from "./http/csrf.js";
 import { seedInitialUser } from "./boot/seed.js";
 import { mountClient } from "./http/static.js";
@@ -38,6 +39,7 @@ async function main(): Promise<void> {
   app.use(boardsRouter);
   app.use(thumbnailsRouter);
   app.use(tagsRouter);
+  app.use(versionsRouter);
 
   app.get("/api/ping", requireAuth, (_req, res) => {
     res.json({ ok: true });
