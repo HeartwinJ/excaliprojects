@@ -35,11 +35,18 @@
 }
 
 .board-editor__name {
-  flex: 1;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 14rem;
+}
+
+.board-editor__tags {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .save {

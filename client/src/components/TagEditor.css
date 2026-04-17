@@ -1,0 +1,54 @@
+.tag-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.tag-editor__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+}
+
+.tag-editor__chip button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font-size: 0.75rem;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.tag-editor__chip button:hover {
+  opacity: 1;
+}
+
+.tag-editor__input {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--color-text);
+  padding: var(--space-1) var(--space-2);
+  min-width: 8rem;
+  border-radius: var(--radius-sm);
+}
+
+.tag-editor__input:focus {
+  outline: none;
+  background: var(--color-surface-muted);
+}
+
+.tag-editor__error {
+  color: var(--color-danger);
+  font-size: 0.75rem;
+}

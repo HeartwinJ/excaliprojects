@@ -5,6 +5,7 @@ import { boardsApi, type Board } from "../api/boards";
 import { ApiError } from "../api/client";
 import { useTheme } from "../theme/ThemeProvider";
 import { ExcalidrawHost, type SceneSnapshot } from "../components/ExcalidrawHost";
+import { TagEditor } from "../components/TagEditor";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import "./BoardEditor.css";
 
@@ -162,6 +163,9 @@ export function BoardEditor(): JSX.Element {
           ← Back
         </Link>
         <span className="board-editor__name">{board.name}</span>
+        <div className="board-editor__tags">
+          <TagEditor boardId={board.id} />
+        </div>
         <SaveIndicator status={status} />
       </div>
       <div className="board-editor__canvas">
