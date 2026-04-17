@@ -6,6 +6,8 @@ import { ApiError } from "../api/client";
 import { useTheme } from "../theme/ThemeProvider";
 import { ExcalidrawHost, type SceneSnapshot } from "../components/ExcalidrawHost";
 import { TagEditor } from "../components/TagEditor";
+import { HistoryPanel } from "../components/HistoryPanel";
+import { Button } from "../components/Button";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import "./BoardEditor.css";
 
@@ -21,6 +23,8 @@ export function BoardEditor(): JSX.Element {
   const [initialScene, setInitialScene] = useState<SceneSnapshot | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [status, setStatus] = useState<SaveStatus>("idle");
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [sceneVersion, setSceneVersion] = useState(0);
 
   const pendingScene = useRef<SceneSnapshot | null>(null);
 
@@ -51,7 +55,7 @@ export function BoardEditor(): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [boardId]);
+  }, [boardId, sceneVersion]);
 
   const uploadThumbnailFor = useCallback(
     async (scene: SceneSnapshot) => {
@@ -166,11 +170,23 @@ export function BoardEditor(): JSX.Element {
         <div className="board-editor__tags">
           <TagEditor boardId={board.id} />
         </div>
+        <Button size="sm" variant="ghost" onClick={() => setHistoryOpen(true)}>
+          History
+        </Button>
         <SaveIndicator status={status} />
       </div>
       <div className="board-editor__canvas">
         <ExcalidrawHost initialScene={initialScene} theme={theme} onChange={handleChange} />
       </div>
+      <HistoryPanel
+        boardId={board.id}
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        onRestore={() => {
+          pendingScene.current = null;
+          setSceneVersion((n) => n + 1);
+        }}
+      />
     </div>
   );
 }
