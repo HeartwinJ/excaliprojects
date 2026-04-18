@@ -9,6 +9,7 @@ import { Button } from "../components/Button";
 import { Modal } from "../components/Modal";
 import { ProjectCard } from "../components/ProjectCard";
 import { BoardCard } from "../components/BoardCard";
+import { BackupCard } from "../components/BackupCard";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import "./Dashboard.css";
 
@@ -219,6 +220,8 @@ export function Dashboard(): JSX.Element {
               </div>
             </section>
           )}
+
+          <BackupCard />
         </>
       )}
 
