@@ -16,6 +16,25 @@
   gap: var(--space-2);
   font-weight: 600;
   color: var(--color-text);
+  text-decoration: none;
+}
+
+.topbar__nav {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.topbar__navlink {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.topbar__navlink:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
 }
 
 .topbar__mark {

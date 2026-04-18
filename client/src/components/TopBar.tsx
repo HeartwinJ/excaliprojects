@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { useTheme, type ThemePreference } from "../theme/ThemeProvider";
 import { apiFetch } from "../api/client";
@@ -30,12 +31,17 @@ export function TopBar(): JSX.Element {
 
   return (
     <header className="topbar">
-      <div className="topbar__brand">
+      <Link to="/" className="topbar__brand">
         <span className="topbar__mark" aria-hidden>
           ✦
         </span>
         <span className="topbar__name">Excaliprojects</span>
-      </div>
+      </Link>
+      <nav className="topbar__nav">
+        <Link to="/libraries" className="topbar__navlink">
+          Libraries
+        </Link>
+      </nav>
       <div className="topbar__spacer" />
       <button type="button" className="topbar__btn" onClick={() => void cycleTheme()} aria-label="Toggle theme">
         <span className="topbar__btn-label">{THEME_LABEL[preference]}</span>
