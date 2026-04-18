@@ -17,6 +17,7 @@ import { versionsRouter } from "./http/routes/versions.js";
 import { librariesRouter } from "./http/routes/libraries.js";
 import { trashRouter } from "./http/routes/trash.js";
 import { backupRouter } from "./http/routes/backup.js";
+import { shareRouter } from "./http/routes/share.js";
 import { startTrashPurger } from "./boot/purger.js";
 import { invalidCsrfTokenError } from "./http/csrf.js";
 import { seedInitialUser } from "./boot/seed.js";
@@ -47,6 +48,7 @@ async function main(): Promise<void> {
   app.use(librariesRouter);
   app.use(trashRouter);
   app.use(backupRouter);
+  app.use(shareRouter);
 
   startTrashPurger();
 
