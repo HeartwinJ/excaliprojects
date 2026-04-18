@@ -6,6 +6,7 @@ import { ProjectView } from "./routes/ProjectView";
 import { BoardEditor } from "./routes/BoardEditor";
 import { LibrariesPage } from "./routes/LibrariesPage";
 import { TrashPage } from "./routes/TrashPage";
+import { SharedView } from "./routes/SharedView";
 import { TopBar } from "./components/TopBar";
 
 function FullscreenSpinner(): JSX.Element {
@@ -31,6 +32,7 @@ export default function App(): JSX.Element {
     <>
       {user && <TopBar />}
       <Routes>
+        <Route path="/s/:token" element={<SharedView />} />
         <Route
           path="/login"
           element={loading ? <FullscreenSpinner /> : user ? <Navigate to="/" replace /> : <Login />}
