@@ -16,6 +16,7 @@ export interface SceneSnapshot {
 interface ExcalidrawHostProps {
   initialScene: SceneSnapshot | null;
   theme: "light" | "dark";
+  libraryItems?: unknown[];
   onChange: (scene: SceneSnapshot) => void;
   onReady?: (api: ExcalidrawImperativeAPI) => void;
 }
@@ -23,6 +24,7 @@ interface ExcalidrawHostProps {
 export function ExcalidrawHost({
   initialScene,
   theme,
+  libraryItems,
   onChange,
   onReady,
 }: ExcalidrawHostProps): JSX.Element {
@@ -30,25 +32,19 @@ export function ExcalidrawHost({
   const [key, setKey] = useState(0);
 
   const initialData = useMemo(() => {
-    if (!initialScene) {
-      return {
-        elements: [],
-        appState: { theme: theme === "dark" ? THEME.DARK : THEME.LIGHT },
-        files: {},
-        scrollToContent: true,
-      };
-    }
+    const base = initialScene ?? { elements: [], appState: {}, files: {} };
     return {
-      elements: initialScene.elements,
+      elements: base.elements,
       appState: {
-        ...initialScene.appState,
+        ...base.appState,
         theme: theme === "dark" ? THEME.DARK : THEME.LIGHT,
         collaborators: new Map(),
       },
-      files: initialScene.files,
+      files: base.files,
+      libraryItems: (libraryItems ?? []) as never,
       scrollToContent: true,
     };
-  }, [initialScene, theme]);
+  }, [initialScene, theme, libraryItems]);
 
   useEffect(() => {
     apiRef.current?.updateScene({

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { exportToBlob } from "@excalidraw/excalidraw";
 import { boardsApi, type Board } from "../api/boards";
+import { librariesApi } from "../api/libraries";
 import { ApiError } from "../api/client";
 import { useTheme } from "../theme/ThemeProvider";
 import { ExcalidrawHost, type SceneSnapshot } from "../components/ExcalidrawHost";
@@ -21,10 +22,18 @@ export function BoardEditor(): JSX.Element {
 
   const [board, setBoard] = useState<Board | null>(null);
   const [initialScene, setInitialScene] = useState<SceneSnapshot | null>(null);
+  const [libraryItems, setLibraryItems] = useState<unknown[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sceneVersion, setSceneVersion] = useState(0);
+
+  useEffect(() => {
+    void librariesApi
+      .items()
+      .then(setLibraryItems)
+      .catch(() => setLibraryItems([]));
+  }, []);
 
   const pendingScene = useRef<SceneSnapshot | null>(null);
 
@@ -176,7 +185,12 @@ export function BoardEditor(): JSX.Element {
         <SaveIndicator status={status} />
       </div>
       <div className="board-editor__canvas">
-        <ExcalidrawHost initialScene={initialScene} theme={theme} onChange={handleChange} />
+        <ExcalidrawHost
+          initialScene={initialScene}
+          theme={theme}
+          libraryItems={libraryItems}
+          onChange={handleChange}
+        />
       </div>
       <HistoryPanel
         boardId={board.id}
