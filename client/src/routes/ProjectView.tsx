@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type DragEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { projectsApi, type Project } from "../api/projects";
 import { boardsApi, type BoardSummary } from "../api/boards";
@@ -13,6 +13,7 @@ export function ProjectView(): JSX.Element {
   const [boards, setBoards] = useState<BoardSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -83,8 +84,47 @@ export function ProjectView(): JSX.Element {
     }
   };
 
+  const handleDrop = async (e: DragEvent<HTMLDivElement>): Promise<void> => {
+    e.preventDefault();
+    setDragOver(false);
+    const files = Array.from(e.dataTransfer.files).filter(
+      (f) => f.name.endsWith(".excalidraw") || f.type === "application/json"
+    );
+    for (const file of files) {
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text) as {
+          elements?: unknown[];
+          appState?: unknown;
+          files?: unknown;
+        };
+        const name = file.name.replace(/\.excalidraw$|\.json$/i, "") || "Imported";
+        const board = await boardsApi.create(projectId, name);
+        await boardsApi.saveScene(board.id, {
+          elements: parsed.elements ?? [],
+          appState: parsed.appState ?? {},
+          files: parsed.files ?? {},
+        });
+        setBoards((list) => [board, ...list]);
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : "Import failed");
+      }
+    }
+  };
+
   return (
-    <div className="project-view">
+    <div
+      className={`project-view${dragOver ? " project-view--drag" : ""}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={(e) => void handleDrop(e)}
+    >
+      {dragOver && (
+        <div className="project-view__dropzone">Drop .excalidraw to import as a new board</div>
+      )}
       <nav className="project-view__crumbs">
         <Link to="/">Dashboard</Link>
         <span aria-hidden>›</span>
