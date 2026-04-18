@@ -4,6 +4,7 @@ import { Login } from "./routes/Login";
 import { Dashboard } from "./routes/Dashboard";
 import { ProjectView } from "./routes/ProjectView";
 import { BoardEditor } from "./routes/BoardEditor";
+import { LibrariesPage } from "./routes/LibrariesPage";
 import { TopBar } from "./components/TopBar";
 
 function FullscreenSpinner(): JSX.Element {
@@ -54,6 +55,14 @@ export default function App(): JSX.Element {
           element={
             <RequireAuth>
               <BoardEditor />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/libraries"
+          element={
+            <RequireAuth>
+              <LibrariesPage />
             </RequireAuth>
           }
         />
