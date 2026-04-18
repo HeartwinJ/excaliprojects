@@ -5,6 +5,7 @@ import { Dashboard } from "./routes/Dashboard";
 import { ProjectView } from "./routes/ProjectView";
 import { BoardEditor } from "./routes/BoardEditor";
 import { LibrariesPage } from "./routes/LibrariesPage";
+import { TrashPage } from "./routes/TrashPage";
 import { TopBar } from "./components/TopBar";
 
 function FullscreenSpinner(): JSX.Element {
@@ -63,6 +64,14 @@ export default function App(): JSX.Element {
           element={
             <RequireAuth>
               <LibrariesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/trash"
+          element={
+            <RequireAuth>
+              <TrashPage />
             </RequireAuth>
           }
         />

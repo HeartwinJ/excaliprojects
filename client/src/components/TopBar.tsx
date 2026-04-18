@@ -41,6 +41,9 @@ export function TopBar(): JSX.Element {
         <Link to="/libraries" className="topbar__navlink">
           Libraries
         </Link>
+        <Link to="/trash" className="topbar__navlink">
+          Trash
+        </Link>
       </nav>
       <div className="topbar__spacer" />
       <button type="button" className="topbar__btn" onClick={() => void cycleTheme()} aria-label="Toggle theme">
