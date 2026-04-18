@@ -1,0 +1,64 @@
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.share__hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.share__url {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.share__url input {
+  flex: 1;
+  appearance: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.share__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.share__field > span {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.share__field input {
+  appearance: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.share__meta {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-subtle);
+}
+
+.share__error {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 0.9rem;
+}

@@ -17,6 +17,7 @@ interface ExcalidrawHostProps {
   initialScene: SceneSnapshot | null;
   theme: "light" | "dark";
   libraryItems?: unknown[];
+  viewModeEnabled?: boolean;
   onChange: (scene: SceneSnapshot) => void;
   onReady?: (api: ExcalidrawImperativeAPI) => void;
 }
@@ -25,6 +26,7 @@ export function ExcalidrawHost({
   initialScene,
   theme,
   libraryItems,
+  viewModeEnabled,
   onChange,
   onReady,
 }: ExcalidrawHostProps): JSX.Element {
@@ -63,9 +65,10 @@ export function ExcalidrawHost({
       key={key}
       initialData={initialData}
       theme={theme === "dark" ? THEME.DARK : THEME.LIGHT}
+      viewModeEnabled={viewModeEnabled}
       UIOptions={{
         canvasActions: {
-          changeViewBackgroundColor: true,
+          changeViewBackgroundColor: !viewModeEnabled,
           saveToActiveFile: false,
           loadScene: false,
           export: { saveFileToDisk: true },
@@ -73,6 +76,7 @@ export function ExcalidrawHost({
         },
       }}
       onChange={(elements, appState, files) => {
+        if (viewModeEnabled) return;
         onChange({ elements, appState, files });
       }}
       excalidrawAPI={(api) => {

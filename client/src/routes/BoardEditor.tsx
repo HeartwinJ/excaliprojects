@@ -8,6 +8,7 @@ import { useTheme } from "../theme/ThemeProvider";
 import { ExcalidrawHost, type SceneSnapshot } from "../components/ExcalidrawHost";
 import { TagEditor } from "../components/TagEditor";
 import { HistoryPanel } from "../components/HistoryPanel";
+import { ShareDialog } from "../components/ShareDialog";
 import { Button } from "../components/Button";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import "./BoardEditor.css";
@@ -26,6 +27,7 @@ export function BoardEditor(): JSX.Element {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [sceneVersion, setSceneVersion] = useState(0);
 
   useEffect(() => {
@@ -182,6 +184,9 @@ export function BoardEditor(): JSX.Element {
         <Button size="sm" variant="ghost" onClick={() => setHistoryOpen(true)}>
           History
         </Button>
+        <Button size="sm" variant="ghost" onClick={() => setShareOpen(true)}>
+          Share
+        </Button>
         <SaveIndicator status={status} />
       </div>
       <div className="board-editor__canvas">
@@ -200,6 +205,11 @@ export function BoardEditor(): JSX.Element {
           pendingScene.current = null;
           setSceneVersion((n) => n + 1);
         }}
+      />
+      <ShareDialog
+        boardId={board.id}
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
       />
     </div>
   );
