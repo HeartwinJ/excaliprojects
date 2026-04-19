@@ -1,0 +1,14 @@
+Excaliprojects
+Copyright (c) 2026 Heartwin Haveluck
+Licensed under the MIT License (see LICENSE).
+
+This product bundles the following third-party software:
+
+- @excalidraw/excalidraw — https://github.com/excalidraw/excalidraw
+  MIT License, Copyright (c) 2020 Excalidraw
+
+- @fontsource/assistant, @fontsource/cascadia-code
+  OFL / MIT as indicated by upstream packages.
+
+Other runtime dependencies (Express, React, Postgres, etc.) are bundled via
+npm and retain their own licenses; see their respective package.json files.
