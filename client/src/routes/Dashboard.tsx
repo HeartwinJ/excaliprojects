@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { projectsApi, type Project } from "../api/projects";
@@ -32,6 +32,18 @@ export function Dashboard(): JSX.Element {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchHits, setSearchHits] = useState<SearchHit[] | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const runSearch = useDebouncedCallback((q: string) => {
     if (q.trim().length === 0) {
@@ -147,8 +159,10 @@ export function Dashboard(): JSX.Element {
 
       <div className="dashboard__search">
         <input
+          ref={searchRef}
           type="search"
-          placeholder="Search projects, boards, and tags…"
+          placeholder="Search projects, boards, and tags…  (⌘K)"
+          aria-label="Search"
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
