@@ -1,50 +1,72 @@
 .project-card {
-  position: relative;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-4);
+  padding: 16px;
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  transition: border-color var(--transition-fast), transform var(--transition-fast);
-}
-
-.project-card:hover {
-  border-color: var(--color-border-strong);
-  transform: translateY(-1px);
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
 }
 
 .project-card__link {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex: 1;
-  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
   color: inherit;
+  text-decoration: none;
+  position: relative;
+}
+.project-card__link:hover {
   text-decoration: none;
 }
 
-.project-card__icon {
-  font-size: 1.5rem;
+.project-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.project-card__mark {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
+}
+.project-card__mark > span {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1;
 }
 
 .project-card__name {
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--color-text);
+  line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.project-card__meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--color-muted);
+}
+
 .project-card__actions {
   display: flex;
-  gap: var(--space-1);
+  align-items: center;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--color-muted);
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
-
 .project-card:hover .project-card__actions,
 .project-card:focus-within .project-card__actions {
   opacity: 1;
@@ -52,23 +74,21 @@
 
 .project-card__action {
   appearance: none;
-  border: 0;
   background: transparent;
-  color: var(--color-text-muted);
+  border: none;
+  color: var(--color-text-soft);
   cursor: pointer;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  font-size: 0.95rem;
+  padding: 0;
+  font: inherit;
 }
-
 .project-card__action:hover {
-  background: var(--color-surface-muted);
   color: var(--color-text);
 }
-
 .project-card__action--danger:hover {
-  background: var(--color-danger-soft);
-  color: var(--color-danger);
+  color: var(--color-rose);
+}
+.project-card__sep {
+  color: var(--color-muted-dim);
 }
 
 @media (max-width: 480px) {

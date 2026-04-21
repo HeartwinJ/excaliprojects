@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { backupApi } from "../api/backup";
 import { Button } from "./Button";
+import { SketchCard } from "./sketch/SketchCard";
 import "./BackupCard.css";
 
 export function BackupCard(): JSX.Element {
@@ -29,18 +30,28 @@ export function BackupCard(): JSX.Element {
   };
 
   return (
-    <section className="backup">
-      <h2>Backup &amp; restore</h2>
+    <SketchCard
+      radius={14}
+      wobble={1.4}
+      seed={5}
+      fill="var(--color-panel-lo)"
+      className="backup"
+    >
       <p className="backup__hint">
-        Export everything (projects, boards, tags, checkpoints, libraries) as a JSON file, or
-        restore from one. Thumbnails will regenerate on next edit.
+        Export everything—projects, boards, tags, checkpoints, libraries—as a
+        single JSON file, or restore from one.{" "}
+        <span className="backup__sub">Thumbnails regenerate on next edit.</span>
       </p>
       <div className="backup__actions">
         <a
-          className="btn btn--secondary btn--md"
+          className="backup__link-btn"
           href={backupApi.downloadUrl}
           download
+          role="button"
         >
+          <span className="backup__icon" aria-hidden>
+            ↓
+          </span>
           Export all
         </a>
         <input
@@ -54,12 +65,18 @@ export function BackupCard(): JSX.Element {
             e.target.value = "";
           }}
         />
-        <Button onClick={() => fileRef.current?.click()} disabled={busy}>
+        <Button
+          variant="ink"
+          size="sm"
+          icon={<span aria-hidden>↑</span>}
+          onClick={() => fileRef.current?.click()}
+          disabled={busy}
+        >
           {busy ? "Restoring…" : "Restore from JSON…"}
         </Button>
       </div>
       {message && <div className="backup__ok">{message}</div>}
       {error && <div className="backup__error">{error}</div>}
-    </section>
+    </SketchCard>
   );
 }
