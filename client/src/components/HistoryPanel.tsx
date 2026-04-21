@@ -93,9 +93,9 @@ export function HistoryPanel({
         {error && <div className="history__error">{error}</div>}
 
         {loading ? (
-          <p>Loading…</p>
+          <p className="history__muted">Loading…</p>
         ) : versions.length === 0 ? (
-          <p>No snapshots yet.</p>
+          <p className="history__muted">No snapshots yet.</p>
         ) : (
           <ul className="history__list">
             {versions.map((v) => (
