@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { shareApi, type PublicBoard } from "../api/share";
 import { useTheme } from "../theme/ThemeProvider";
 import { ExcalidrawHost, type SceneSnapshot } from "../components/ExcalidrawHost";
+import { SparkLogo } from "../components/sketch/SparkLogo";
+import { SketchBorder } from "../components/sketch/SketchBorder";
 import "./SharedView.css";
 
 export function SharedView(): JSX.Element {
@@ -28,7 +30,8 @@ export function SharedView(): JSX.Element {
         });
       })
       .catch(() => {
-        if (!cancelled) setError("This link is not valid or has been revoked.");
+        if (!cancelled)
+          setError("This link is not valid or has been revoked.");
       });
     return () => {
       cancelled = true;
@@ -38,8 +41,8 @@ export function SharedView(): JSX.Element {
   if (error) {
     return (
       <div className="shared shared--error">
-        <h1>Link unavailable</h1>
-        <p>{error}</p>
+        <h1 className="shared__error-title">Link unavailable</h1>
+        <p className="mono">{error}</p>
       </div>
     );
   }
@@ -48,7 +51,7 @@ export function SharedView(): JSX.Element {
     return (
       <div className="shared shared--loading">
         <span className="boot__spinner" aria-hidden />
-        <span>Loading board…</span>
+        <span className="mono">Loading board…</span>
       </div>
     );
   }
@@ -56,12 +59,26 @@ export function SharedView(): JSX.Element {
   return (
     <div className="shared">
       <header className="shared__bar">
-        <span className="shared__mark" aria-hidden>
-          ✦
-        </span>
+        <div className="shared__brand">
+          <SparkLogo size={18} />
+          <span>Excaliprojects</span>
+        </div>
         <span className="shared__title">{board.name}</span>
-        <span className="shared__badge">Read-only</span>
-        <a href="https://excalidraw.com" target="_blank" rel="noreferrer" className="shared__powered">
+        <span className="shared__badge">
+          <SketchBorder
+            radius={6}
+            stroke="var(--color-accent-dim)"
+            fill="rgba(165, 153, 233, 0.12)"
+            wobble={1.1}
+          />
+          <span>Read-only</span>
+        </span>
+        <a
+          href="https://excalidraw.com"
+          target="_blank"
+          rel="noreferrer"
+          className="shared__powered mono"
+        >
           Made with Excalidraw
         </a>
       </header>
