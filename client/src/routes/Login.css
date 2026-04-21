@@ -1,106 +1,125 @@
 .login {
+  position: relative;
   min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: var(--space-6);
-  background: var(--color-bg);
-}
-
-.login__card {
-  width: 100%;
-  max-width: 22rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: var(--space-8);
+  background: var(--color-ink);
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  overflow: hidden;
+  padding: 24px 16px;
 }
 
-.login__title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
+.login__doodles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+.login__stage {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  font-family: var(--font-display);
+  font-size: 22px;
   color: var(--color-text);
 }
 
+.login__title {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 4px;
+}
+
 .login__subtitle {
-  margin: 0 0 var(--space-2) 0;
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
+  margin: 0 0 24px;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .login__field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 7px;
 }
 
-.login__field > span {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
+.login__label {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: var(--color-text-soft);
+  font-weight: 500;
 }
 
-.login__field input {
-  appearance: none;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-raised);
-  color: var(--color-text);
-  font: inherit;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+.login__input-wrap {
+  position: relative;
+  height: 40px;
 }
 
-.login__field input:focus {
+.login__input {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-focus-ring);
+  padding: 0 13px;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+}
+
+.login__input--password {
+  letter-spacing: 2px;
+}
+
+.login__input:focus-visible {
+  outline: none;
 }
 
 .login__error {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-danger-soft);
-  color: var(--color-danger);
-  font-size: 0.9rem;
+  margin: 2px 0 0;
+  color: var(--color-rose);
+  font-size: 12.5px;
 }
 
 .login__submit {
-  appearance: none;
-  border: 0;
-  background: var(--color-primary);
-  color: var(--color-primary-contrast);
-  font: inherit;
-  font-weight: 600;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: background var(--transition-fast), transform var(--transition-fast);
+  width: 100%;
+  margin-top: 8px;
+  justify-content: center;
 }
 
-.login__submit:hover:not(:disabled) {
-  background: var(--color-primary-strong);
+.login__footer {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--color-line);
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--color-muted);
 }
-
-.login__submit:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.login__submit:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
-}
-
-@media (max-width: 480px) {
-  .login {
-    padding: var(--space-3);
-  }
-  .login__card {
-    padding: var(--space-6);
-  }
+.login__footer code {
+  color: var(--color-accent-soft);
+  background: var(--color-panel-lo);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: var(--font-mono);
 }
