@@ -49,3 +49,4 @@ coverage/
 
 # Local-only compose overrides (never commit)
 docker-compose.override.yml
+.design-handoff/
