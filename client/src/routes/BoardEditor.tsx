@@ -10,6 +10,7 @@ import { TagEditor } from "../components/TagEditor";
 import { HistoryPanel } from "../components/HistoryPanel";
 import { ShareDialog } from "../components/ShareDialog";
 import { Button } from "../components/Button";
+import { SketchBorder } from "../components/sketch/SketchBorder";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import "./BoardEditor.css";
 
@@ -59,7 +60,9 @@ export function BoardEditor(): JSX.Element {
         );
       } catch (err) {
         if (!cancelled) {
-          setLoadError(err instanceof ApiError ? err.message : "Failed to load board");
+          setLoadError(
+            err instanceof ApiError ? err.message : "Failed to load board"
+          );
         }
       }
     })();
@@ -78,7 +81,8 @@ export function BoardEditor(): JSX.Element {
             ...scene.appState,
             exportBackground: true,
             exportWithDarkMode: false,
-            viewBackgroundColor: scene.appState.viewBackgroundColor ?? "#ffffff",
+            viewBackgroundColor:
+              scene.appState.viewBackgroundColor ?? "#ffffff",
           },
           files: scene.files,
           getDimensions: () => ({ width: 400, height: 300 }),
@@ -156,8 +160,10 @@ export function BoardEditor(): JSX.Element {
   if (loadError) {
     return (
       <div className="board-editor board-editor--error">
-        <p>{loadError}</p>
-        <Link to="/">Back to dashboard</Link>
+        <p className="mono">{loadError}</p>
+        <Link to="/" className="board-editor__error-link">
+          Back to dashboard
+        </Link>
       </div>
     );
   }
@@ -166,7 +172,7 @@ export function BoardEditor(): JSX.Element {
     return (
       <div className="board-editor board-editor--loading">
         <span className="boot__spinner" aria-hidden />
-        <span>Opening board…</span>
+        <span className="mono">Opening board…</span>
       </div>
     );
   }
@@ -174,20 +180,33 @@ export function BoardEditor(): JSX.Element {
   return (
     <div className="board-editor">
       <div className="board-editor__bar">
-        <Link to={`/projects/${board.project_id}`} className="board-editor__back">
-          ← Back
-        </Link>
-        <span className="board-editor__name">{board.name}</span>
-        <div className="board-editor__tags">
-          <TagEditor boardId={board.id} />
+        <div className="board-editor__bar-left">
+          <Link
+            to={`/projects/${board.project_id}`}
+            className="board-editor__back"
+          >
+            ← Back
+          </Link>
+          <span className="board-editor__name" title={board.name}>
+            {board.name}
+          </span>
+          <div className="board-editor__tags">
+            <TagEditor boardId={board.id} />
+          </div>
         </div>
-        <Button size="sm" variant="ghost" onClick={() => setHistoryOpen(true)}>
-          History
-        </Button>
-        <Button size="sm" variant="ghost" onClick={() => setShareOpen(true)}>
-          Share
-        </Button>
-        <SaveIndicator status={status} />
+        <div className="board-editor__bar-right">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setHistoryOpen(true)}
+          >
+            History
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setShareOpen(true)}>
+            Share
+          </Button>
+          <SaveIndicator status={status} />
+        </div>
       </div>
       <div className="board-editor__canvas">
         <ExcalidrawHost
@@ -223,9 +242,28 @@ function SaveIndicator({ status }: { status: SaveStatus }): JSX.Element {
     saved: "Saved",
     error: "Save failed",
   }[status];
+  const stroke = {
+    idle: "var(--color-line)",
+    dirty: "var(--color-amber)",
+    saving: "var(--color-accent)",
+    saved: "var(--color-mint)",
+    error: "var(--color-rose)",
+  }[status];
+  const fill = {
+    idle: "var(--color-panel-lo)",
+    dirty: "rgba(242, 181, 89, 0.1)",
+    saving: "rgba(165, 153, 233, 0.1)",
+    saved: "rgba(143, 214, 181, 0.1)",
+    error: "rgba(232, 138, 138, 0.1)",
+  }[status];
   return (
-    <span className={`save save--${status}`} role="status" aria-live="polite">
-      {label}
+    <span
+      className={`save save--${status}`}
+      role="status"
+      aria-live="polite"
+    >
+      <SketchBorder radius={6} stroke={stroke} fill={fill} wobble={1.1} />
+      <span>{label}</span>
     </span>
   );
 }

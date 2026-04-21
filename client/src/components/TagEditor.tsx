@@ -1,5 +1,6 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { tagsApi, type Tag } from "../api/tags";
+import { tagsApi, type Tag as TagRecord } from "../api/tags";
+import { SketchBorder } from "./sketch/SketchBorder";
 import "./TagEditor.css";
 
 interface TagEditorProps {
@@ -7,7 +8,7 @@ interface TagEditorProps {
 }
 
 export function TagEditor({ boardId }: TagEditorProps): JSX.Element {
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [tags, setTags] = useState<TagRecord[]>([]);
   const [draft, setDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,26 +63,34 @@ export function TagEditor({ boardId }: TagEditorProps): JSX.Element {
     <div className="tag-editor">
       {tags.map((t) => (
         <span key={t.id} className="tag-editor__chip">
-          {t.name}
-          <button
-            type="button"
-            aria-label={`Remove ${t.name}`}
-            onClick={() => removeTag(t.name)}
-          >
-            ✕
-          </button>
+          <SketchBorder
+            radius={999}
+            stroke="var(--color-line-hi)"
+            fill="var(--color-panel-lo)"
+            wobble={1.0}
+          />
+          <span className="tag-editor__chip-inner">
+            #{t.name}
+            <button
+              type="button"
+              aria-label={`Remove ${t.name}`}
+              onClick={() => removeTag(t.name)}
+            >
+              ✕
+            </button>
+          </span>
         </span>
       ))}
       <input
-        className="tag-editor__input"
+        className="tag-editor__input mono"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={() => addTag(draft)}
-        placeholder={saving ? "Saving…" : "+ Add tag"}
+        placeholder={saving ? "Saving…" : "+ add tag"}
         disabled={saving}
       />
-      {error && <span className="tag-editor__error">{error}</span>}
+      {error && <span className="tag-editor__error mono">{error}</span>}
     </div>
   );
 }
