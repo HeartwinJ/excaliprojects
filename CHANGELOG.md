@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Visual refresh: new hand-drawn, sketch-forward look across every screen
+  (Inter, Caveat, and JetBrains Mono fonts; wobbly SVG-filter borders; lilac
+  accent). Dark is now the native palette, with a matching light theme.
+
 ### Added
 
 - Personal, single-user self-hosted Excalidraw organiser.
