@@ -1,8 +1,9 @@
 .board-card {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   padding: 0;
+  /* Intentionally no overflow:hidden — we want absolute descendants
+     (kebab dropdown) to escape the card bounds. The thumbnail clips itself. */
 }
 
 .board-card__thumb {
@@ -14,6 +15,7 @@
   text-decoration: none;
   color: inherit;
   overflow: hidden;
+  border-radius: 14px 14px 0 0;
   border-bottom: 1px dashed var(--color-line);
 }
 

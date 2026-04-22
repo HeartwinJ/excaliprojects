@@ -12,6 +12,7 @@ import { ShareDialog } from "../components/ShareDialog";
 import { Button } from "../components/Button";
 import { SketchBorder } from "../components/sketch/SketchBorder";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
+import { REPO_ISSUES_URL, REPO_README_URL } from "../config/links";
 import "./BoardEditor.css";
 
 const AUTOSAVE_DEBOUNCE_MS = 1500;
@@ -246,16 +247,18 @@ export function BoardEditor(): JSX.Element {
             <>
               <MainMenu.Group title="Board">
                 <MainMenu.Item onSelect={() => navigate(boardPath)}>
-                  ← Back to project
+                  Back to project
                 </MainMenu.Item>
                 <MainMenu.Item onSelect={() => navigate("/")}>
-                  Go to dashboard
+                  Dashboard
                 </MainMenu.Item>
               </MainMenu.Group>
               <MainMenu.Separator />
-              <MainMenu.DefaultItems.SaveAsImage />
-              <MainMenu.DefaultItems.ChangeCanvasBackground />
-              <MainMenu.DefaultItems.ClearCanvas />
+              <MainMenu.Group title="Canvas">
+                <MainMenu.DefaultItems.SaveAsImage />
+                <MainMenu.DefaultItems.ChangeCanvasBackground />
+                <MainMenu.DefaultItems.ClearCanvas />
+              </MainMenu.Group>
               <MainMenu.Separator />
               <MainMenu.Group title="This board">
                 <MainMenu.Item onSelect={() => setHistoryOpen(true)}>
@@ -275,7 +278,20 @@ export function BoardEditor(): JSX.Element {
                 </MainMenu.Item>
               </MainMenu.Group>
               <MainMenu.Separator />
-              <MainMenu.DefaultItems.Help />
+              <MainMenu.Group title="Help">
+                <MainMenu.ItemLink
+                  href={REPO_README_URL}
+                  icon={<ExternalIcon />}
+                >
+                  Documentation
+                </MainMenu.ItemLink>
+                <MainMenu.ItemLink
+                  href={REPO_ISSUES_URL}
+                  icon={<ExternalIcon />}
+                >
+                  Report an issue
+                </MainMenu.ItemLink>
+              </MainMenu.Group>
             </>
           }
         />
@@ -297,6 +313,41 @@ export function BoardEditor(): JSX.Element {
         onClose={() => setShareOpen(false)}
       />
     </div>
+  );
+}
+
+function ExternalIcon(): JSX.Element {
+  return (
+    <svg
+      width={12}
+      height={12}
+      viewBox="0 0 16 16"
+      aria-hidden
+      style={{ display: "block" }}
+    >
+      <path
+        d="M6 3 H4 A1 1 0 0 0 3 4 V12 A1 1 0 0 0 4 13 H12 A1 1 0 0 0 13 12 V10"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M9 3 H13 V7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M13 3 L8 8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 

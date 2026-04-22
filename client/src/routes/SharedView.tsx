@@ -93,8 +93,6 @@ export function SharedView(): JSX.Element {
             <>
               <MainMenu.DefaultItems.SaveAsImage />
               <MainMenu.DefaultItems.ChangeCanvasBackground />
-              <MainMenu.Separator />
-              <MainMenu.DefaultItems.Help />
             </>
           }
         />
