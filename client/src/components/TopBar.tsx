@@ -95,6 +95,41 @@ export function TopBar(): JSX.Element {
   );
 }
 
+function SystemIcon(): JSX.Element {
+  return (
+    <svg
+      width={13}
+      height={13}
+      viewBox="0 0 14 14"
+      aria-hidden
+      style={{ display: "block" }}
+    >
+      <rect
+        x={1.25}
+        y={2}
+        width={11.5}
+        height={7.5}
+        rx={1.2}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.25}
+      />
+      <path
+        d="M5 12 L9 12"
+        stroke="currentColor"
+        strokeWidth={1.25}
+        strokeLinecap="round"
+      />
+      <path
+        d="M7 9.5 L7 12"
+        stroke="currentColor"
+        strokeWidth={1.25}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function ThemeChip({
   preference,
   onCycle,
@@ -108,11 +143,14 @@ function ThemeChip({
     <div className="themechip" role="group" aria-label="Theme">
       <button
         type="button"
-        className={`themechip__seg${preference === "system" ? " is-active" : ""}`}
+        className={`themechip__seg themechip__seg--icon${
+          preference === "system" ? " is-active" : ""
+        }`}
         onClick={() => onPick("system")}
         title="Match system"
+        aria-label="Match system theme"
       >
-        Auto
+        <SystemIcon />
       </button>
       <button
         type="button"
