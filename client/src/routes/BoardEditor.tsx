@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { exportToBlob } from "@excalidraw/excalidraw";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { exportToBlob, getSceneVersion, MainMenu } from "@excalidraw/excalidraw";
 import { boardsApi, type Board } from "../api/boards";
 import { librariesApi } from "../api/libraries";
 import { ApiError } from "../api/client";
@@ -21,6 +21,7 @@ type SaveStatus = "idle" | "dirty" | "saving" | "saved" | "error";
 export function BoardEditor(): JSX.Element {
   const { boardId = "" } = useParams<{ boardId: string }>();
   const { resolved: theme } = useTheme();
+  const navigate = useNavigate();
 
   const [board, setBoard] = useState<Board | null>(null);
   const [initialScene, setInitialScene] = useState<SceneSnapshot | null>(null);
@@ -39,6 +40,12 @@ export function BoardEditor(): JSX.Element {
   }, []);
 
   const pendingScene = useRef<SceneSnapshot | null>(null);
+  // Last element-version we've seen; used to skip spurious onChange fires
+  // (cursor moves, selection) that would otherwise flip us to "dirty".
+  const lastElementsVersion = useRef<number | null>(null);
+  // Last files signature — Excalidraw also fires onChange when embedded images
+  // are added/removed without the elements array changing.
+  const lastFilesKey = useRef<string>("");
 
   useEffect(() => {
     let cancelled = false;
@@ -49,15 +56,21 @@ export function BoardEditor(): JSX.Element {
         if (cancelled) return;
         setBoard(b);
         const scene = (b.scene_json as Partial<SceneSnapshot> | null) ?? null;
-        setInitialScene(
+        const snapshot: SceneSnapshot =
           scene && scene.elements
             ? {
                 elements: scene.elements ?? [],
                 appState: scene.appState ?? {},
                 files: scene.files ?? {},
               }
-            : { elements: [], appState: {}, files: {} }
-        );
+            : { elements: [], appState: {}, files: {} };
+        setInitialScene(snapshot);
+        // Seed the change-detection refs so the very first onChange (which
+        // Excalidraw fires right after loading the scene) is treated as a
+        // no-op.
+        lastElementsVersion.current = getSceneVersion(snapshot.elements);
+        lastFilesKey.current = filesKey(snapshot.files);
+        setStatus("idle");
       } catch (err) {
         if (!cancelled) {
           setLoadError(
@@ -75,14 +88,18 @@ export function BoardEditor(): JSX.Element {
     async (scene: SceneSnapshot) => {
       if (scene.elements.length === 0) return;
       try {
+        const isDark = theme === "dark";
+        // Fall back to our theme-matching ink/panel color if the scene
+        // doesn't have an explicit viewBackgroundColor (fresh canvas).
+        const fallbackBg = isDark ? "#17171a" : "#ffffff";
         const blob = await exportToBlob({
           elements: scene.elements,
           appState: {
             ...scene.appState,
             exportBackground: true,
-            exportWithDarkMode: false,
+            exportWithDarkMode: isDark,
             viewBackgroundColor:
-              scene.appState.viewBackgroundColor ?? "#ffffff",
+              scene.appState.viewBackgroundColor ?? fallbackBg,
           },
           files: scene.files,
           getDimensions: () => ({ width: 400, height: 300 }),
@@ -93,7 +110,7 @@ export function BoardEditor(): JSX.Element {
         console.warn("thumbnail upload failed", err);
       }
     },
-    [boardId]
+    [boardId, theme]
   );
 
   const flushSave = useCallback(async () => {
@@ -124,6 +141,18 @@ export function BoardEditor(): JSX.Element {
 
   const handleChange = useCallback(
     (scene: SceneSnapshot) => {
+      const version = getSceneVersion(scene.elements);
+      const fkey = filesKey(scene.files);
+      if (
+        lastElementsVersion.current !== null &&
+        version === lastElementsVersion.current &&
+        fkey === lastFilesKey.current
+      ) {
+        // No meaningful change — cursor moves, selection toggles, etc.
+        return;
+      }
+      lastElementsVersion.current = version;
+      lastFilesKey.current = fkey;
       pendingScene.current = scene;
       setStatus((prev) => (prev === "saving" ? prev : "dirty"));
       debouncedSave();
@@ -177,14 +206,13 @@ export function BoardEditor(): JSX.Element {
     );
   }
 
+  const boardPath = `/projects/${board.project_id}`;
+
   return (
     <div className="board-editor">
       <div className="board-editor__bar">
         <div className="board-editor__bar-left">
-          <Link
-            to={`/projects/${board.project_id}`}
-            className="board-editor__back"
-          >
+          <Link to={boardPath} className="board-editor__back">
             ← Back
           </Link>
           <span className="board-editor__name" title={board.name}>
@@ -214,6 +242,42 @@ export function BoardEditor(): JSX.Element {
           theme={theme}
           libraryItems={libraryItems}
           onChange={handleChange}
+          menu={
+            <>
+              <MainMenu.Group title="Board">
+                <MainMenu.Item onSelect={() => navigate(boardPath)}>
+                  ← Back to project
+                </MainMenu.Item>
+                <MainMenu.Item onSelect={() => navigate("/")}>
+                  Go to dashboard
+                </MainMenu.Item>
+              </MainMenu.Group>
+              <MainMenu.Separator />
+              <MainMenu.DefaultItems.SaveAsImage />
+              <MainMenu.DefaultItems.ChangeCanvasBackground />
+              <MainMenu.DefaultItems.ClearCanvas />
+              <MainMenu.Separator />
+              <MainMenu.Group title="This board">
+                <MainMenu.Item onSelect={() => setHistoryOpen(true)}>
+                  Version history…
+                </MainMenu.Item>
+                <MainMenu.Item onSelect={() => setShareOpen(true)}>
+                  Share link…
+                </MainMenu.Item>
+              </MainMenu.Group>
+              <MainMenu.Separator />
+              <MainMenu.Group title="Workspace">
+                <MainMenu.Item onSelect={() => navigate("/libraries")}>
+                  Libraries
+                </MainMenu.Item>
+                <MainMenu.Item onSelect={() => navigate("/trash")}>
+                  Trash
+                </MainMenu.Item>
+              </MainMenu.Group>
+              <MainMenu.Separator />
+              <MainMenu.DefaultItems.Help />
+            </>
+          }
         />
       </div>
       <HistoryPanel
@@ -222,6 +286,8 @@ export function BoardEditor(): JSX.Element {
         onClose={() => setHistoryOpen(false)}
         onRestore={() => {
           pendingScene.current = null;
+          lastElementsVersion.current = null;
+          lastFilesKey.current = "";
           setSceneVersion((n) => n + 1);
         }}
       />
@@ -234,23 +300,29 @@ export function BoardEditor(): JSX.Element {
   );
 }
 
-function SaveIndicator({ status }: { status: SaveStatus }): JSX.Element {
+function filesKey(files: SceneSnapshot["files"]): string {
+  if (!files) return "";
+  const keys = Object.keys(files);
+  if (keys.length === 0) return "";
+  return keys.sort().join("|");
+}
+
+function SaveIndicator({ status }: { status: SaveStatus }): JSX.Element | null {
+  // "idle" = no unsaved work → don't render at all.
+  if (status === "idle") return null;
   const label = {
-    idle: "Ready",
     dirty: "Unsaved…",
     saving: "Saving…",
     saved: "Saved",
     error: "Save failed",
   }[status];
   const stroke = {
-    idle: "var(--color-line)",
     dirty: "var(--color-amber)",
     saving: "var(--color-accent)",
     saved: "var(--color-mint)",
     error: "var(--color-rose)",
   }[status];
   const fill = {
-    idle: "var(--color-panel-lo)",
     dirty: "rgba(242, 181, 89, 0.1)",
     saving: "rgba(165, 153, 233, 0.1)",
     saved: "rgba(143, 214, 181, 0.1)",

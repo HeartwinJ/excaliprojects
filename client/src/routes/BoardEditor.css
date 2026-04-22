@@ -58,13 +58,15 @@
 
 .board-editor__name {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 20px;
   color: var(--color-text);
-  line-height: 1;
-  max-width: 14rem;
+  line-height: 1.25;
+  padding: 0 4px;
+  max-width: 18rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .board-editor__tags {

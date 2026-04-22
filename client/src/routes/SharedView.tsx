@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { MainMenu } from "@excalidraw/excalidraw";
 import { shareApi, type PublicBoard } from "../api/share";
 import { useTheme } from "../theme/ThemeProvider";
 import { ExcalidrawHost, type SceneSnapshot } from "../components/ExcalidrawHost";
@@ -88,6 +89,14 @@ export function SharedView(): JSX.Element {
           theme={theme}
           viewModeEnabled
           onChange={() => undefined}
+          menu={
+            <>
+              <MainMenu.DefaultItems.SaveAsImage />
+              <MainMenu.DefaultItems.ChangeCanvasBackground />
+              <MainMenu.Separator />
+              <MainMenu.DefaultItems.Help />
+            </>
+          }
         />
       </div>
     </div>
