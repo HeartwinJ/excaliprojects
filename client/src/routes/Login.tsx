@@ -66,7 +66,7 @@ export function Login(): JSX.Element {
               <label htmlFor="username" className="login__label">
                 Username
               </label>
-              <div className="login__input-wrap">
+              <div className="login__input-wrap sketch-input">
                 <SketchBorder
                   radius={9}
                   stroke="var(--color-line-hi)"
@@ -91,7 +91,7 @@ export function Login(): JSX.Element {
               <label htmlFor="password" className="login__label">
                 Password
               </label>
-              <div className="login__input-wrap">
+              <div className="login__input-wrap sketch-input">
                 <SketchBorder
                   radius={9}
                   stroke="var(--color-line-hi)"

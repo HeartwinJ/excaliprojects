@@ -13,6 +13,7 @@ import { BackupCard } from "../components/BackupCard";
 import { GridBackdrop } from "../components/sketch/GridBackdrop";
 import { SketchBorder } from "../components/sketch/SketchBorder";
 import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
+import { useModifierShortcut } from "../hooks/usePlatform";
 import "./Dashboard.css";
 
 interface RenameState {
@@ -35,6 +36,7 @@ export function Dashboard(): JSX.Element {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchHits, setSearchHits] = useState<SearchHit[] | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
+  const searchShortcut = useModifierShortcut("K");
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
@@ -173,7 +175,7 @@ export function Dashboard(): JSX.Element {
           <p className="dashboard__subtitle mono">{meta}</p>
         </header>
 
-        <div className="dashboard__search">
+        <div className="dashboard__search sketch-input">
           <SketchBorder
             radius={11}
             stroke="var(--color-line-hi)"
@@ -196,7 +198,7 @@ export function Dashboard(): JSX.Element {
             }}
             className="dashboard__search-input"
           />
-          <kbd className="dashboard__search-kbd">⌘K</kbd>
+          <kbd className="dashboard__search-kbd">{searchShortcut}</kbd>
         </div>
 
         {error && <div className="dashboard__error mono">{error}</div>}
@@ -238,6 +240,7 @@ export function Dashboard(): JSX.Element {
                       key={p.id}
                       id={p.id}
                       name={p.name}
+                      tags={p.tags}
                       onRename={() => {
                         setRename({ id: p.id, currentName: p.name });
                         setRenameValue(p.name);

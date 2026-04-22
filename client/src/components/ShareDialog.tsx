@@ -88,7 +88,7 @@ export function ShareDialog({
             Anyone with this link can view the board in read-only mode.
           </p>
           <div className="share__url-row">
-            <div className="share__url-wrap">
+            <div className="share__url-wrap sketch-input">
               <SketchBorder
                 radius={8}
                 stroke="var(--color-line-hi)"
@@ -152,7 +152,7 @@ export function ShareDialog({
           </p>
           <label className="share__field">
             <span>Expires in (days, optional)</span>
-            <div className="share__field-wrap">
+            <div className="share__field-wrap sketch-input">
               <SketchBorder
                 radius={9}
                 stroke="var(--color-line-hi)"
