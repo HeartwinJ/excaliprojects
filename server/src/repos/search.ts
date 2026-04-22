@@ -24,9 +24,12 @@ export async function search(ownerId: string, query: string): Promise<SearchHit[
 
   const [{ rows: projectRows }, { rows: boardRows }] = await Promise.all([
     pool.query<{ id: string; name: string }>(
-      `select id, name from projects
-       where owner_id = $1 and deleted_at is null and name ilike $2
-       order by name asc limit 20`,
+      `select distinct p.id, p.name from projects p
+       left join project_tags pt on pt.project_id = p.id
+       left join tags t on t.id = pt.tag_id and t.owner_id = $1
+       where p.owner_id = $1 and p.deleted_at is null
+         and (p.name ilike $2 or t.name ilike $2)
+       order by p.name asc limit 20`,
       [ownerId, term]
     ),
     pool.query<{

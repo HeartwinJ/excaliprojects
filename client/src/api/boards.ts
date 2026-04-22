@@ -1,5 +1,10 @@
 import { apiFetch } from "./client";
 
+export interface TagRef {
+  id: string;
+  name: string;
+}
+
 export interface BoardSummary {
   id: string;
   project_id: string;
@@ -9,6 +14,7 @@ export interface BoardSummary {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  tags?: TagRef[];
 }
 
 export interface Board extends BoardSummary {
@@ -18,7 +24,8 @@ export interface Board extends BoardSummary {
 export const boardsApi = {
   listForProject: (projectId: string): Promise<BoardSummary[]> =>
     apiFetch<BoardSummary[]>(`/api/projects/${projectId}/boards`),
-  recent: (): Promise<BoardSummary[]> => apiFetch<BoardSummary[]>("/api/boards/recent"),
+  recent: (): Promise<BoardSummary[]> =>
+    apiFetch<BoardSummary[]>("/api/boards/recent"),
   get: (id: string): Promise<Board> => apiFetch<Board>(`/api/boards/${id}`),
   create: (projectId: string, name?: string): Promise<BoardSummary> =>
     apiFetch<BoardSummary>(`/api/projects/${projectId}/boards`, {
@@ -29,14 +36,23 @@ export const boardsApi = {
     id: string,
     patch: { name?: string; isFavorite?: boolean; projectId?: string }
   ): Promise<BoardSummary> =>
-    apiFetch<BoardSummary>(`/api/boards/${id}`, { method: "PATCH", body: patch }),
+    apiFetch<BoardSummary>(`/api/boards/${id}`, {
+      method: "PATCH",
+      body: patch,
+    }),
   duplicate: (id: string): Promise<BoardSummary> =>
     apiFetch<BoardSummary>(`/api/boards/${id}/duplicate`, { method: "POST" }),
   remove: (id: string): Promise<void> =>
     apiFetch<void>(`/api/boards/${id}`, { method: "DELETE" }),
   saveScene: (id: string, scene: unknown): Promise<{ updatedAt: string }> =>
-    apiFetch<{ updatedAt: string }>(`/api/boards/${id}/scene`, { method: "PUT", body: scene }),
-  uploadThumbnail: async (id: string, png: Blob): Promise<{ thumbnail_path: string }> => {
+    apiFetch<{ updatedAt: string }>(`/api/boards/${id}/scene`, {
+      method: "PUT",
+      body: scene,
+    }),
+  uploadThumbnail: async (
+    id: string,
+    png: Blob
+  ): Promise<{ thumbnail_path: string }> => {
     const csrfRes = await fetch("/api/csrf", { credentials: "include" });
     const { csrfToken } = (await csrfRes.json()) as { csrfToken: string };
     const res = await fetch(`/api/boards/${id}/thumbnail`, {

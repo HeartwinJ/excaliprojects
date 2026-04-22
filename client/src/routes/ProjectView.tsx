@@ -5,6 +5,7 @@ import { boardsApi, type BoardSummary } from "../api/boards";
 import { ApiError } from "../api/client";
 import { Button } from "../components/Button";
 import { BoardCard } from "../components/BoardCard";
+import { TagEditor } from "../components/TagEditor";
 import { GridBackdrop } from "../components/sketch/GridBackdrop";
 import { SketchBorder } from "../components/sketch/SketchBorder";
 import "./ProjectView.css";
@@ -189,6 +190,15 @@ export function ProjectView(): JSX.Element {
                 </>
               )}
             </div>
+            {project && (
+              <div className="project-view__tags">
+                <TagEditor
+                  kind="project"
+                  projectId={project.id}
+                  initial={project.tags}
+                />
+              </div>
+            )}
           </div>
           <div className="project-view__head-right">
             <Button
@@ -278,16 +288,10 @@ function FilterChip({
   return (
     <button
       type="button"
-      className={`project-view__chip${active ? " is-active" : ""}`}
+      className={`pill pill--md pill--button${active ? " pill--active" : ""}`}
       onClick={onClick}
     >
-      <SketchBorder
-        radius={999}
-        stroke={active ? "var(--color-accent)" : "var(--color-line)"}
-        fill={active ? "rgba(165, 153, 233, 0.12)" : "var(--color-panel-lo)"}
-        wobble={1.1}
-      />
-      <span>{children}</span>
+      {children}
     </button>
   );
 }
