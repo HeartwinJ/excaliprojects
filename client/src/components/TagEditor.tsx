@@ -1,34 +1,60 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { tagsApi, type Tag as TagRecord } from "../api/tags";
-import { SketchBorder } from "./sketch/SketchBorder";
 import "./TagEditor.css";
 
 interface TagEditorProps {
-  boardId: string;
+  /** Either a board or a project. */
+  kind?: "board" | "project";
+  /** The target id — defaults to treating it as a board for back-compat. */
+  boardId?: string;
+  projectId?: string;
+  /** Optional list of initial tags to seed without a fetch. */
+  initial?: TagRecord[];
+  /** Called with the new tag list after each save. */
+  onChange?: (tags: TagRecord[]) => void;
 }
 
-export function TagEditor({ boardId }: TagEditorProps): JSX.Element {
-  const [tags, setTags] = useState<TagRecord[]>([]);
+export function TagEditor({
+  kind,
+  boardId,
+  projectId,
+  initial,
+  onChange,
+}: TagEditorProps): JSX.Element {
+  const effectiveKind: "board" | "project" =
+    kind ?? (projectId ? "project" : "board");
+  const targetId = effectiveKind === "project" ? projectId! : boardId!;
+
+  const [tags, setTags] = useState<TagRecord[]>(initial ?? []);
   const [draft, setDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (initial) return;
     let cancelled = false;
-    void tagsApi.listForBoard(boardId).then((t) => {
+    const fetcher =
+      effectiveKind === "project"
+        ? tagsApi.listForProject(targetId)
+        : tagsApi.listForBoard(targetId);
+    void fetcher.then((t) => {
       if (!cancelled) setTags(t);
     });
     return () => {
       cancelled = true;
     };
-  }, [boardId]);
+  }, [effectiveKind, targetId, initial]);
 
   const commit = async (next: string[]): Promise<void> => {
     setSaving(true);
     setError(null);
     try {
-      const updated = await tagsApi.setForBoard(boardId, next);
+      const updated =
+        effectiveKind === "project"
+          ? await tagsApi.setForProject(targetId, next)
+          : await tagsApi.setForBoard(targetId, next);
       setTags(updated);
+      onChange?.(updated);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -62,23 +88,15 @@ export function TagEditor({ boardId }: TagEditorProps): JSX.Element {
   return (
     <div className="tag-editor">
       {tags.map((t) => (
-        <span key={t.id} className="tag-editor__chip">
-          <SketchBorder
-            radius={999}
-            stroke="var(--color-line-hi)"
-            fill="var(--color-panel-lo)"
-            wobble={1.0}
-          />
-          <span className="tag-editor__chip-inner">
-            #{t.name}
-            <button
-              type="button"
-              aria-label={`Remove ${t.name}`}
-              onClick={() => removeTag(t.name)}
-            >
-              ✕
-            </button>
-          </span>
+        <span key={t.id} className="pill tag-editor__chip">
+          #{t.name}
+          <button
+            type="button"
+            aria-label={`Remove ${t.name}`}
+            onClick={() => removeTag(t.name)}
+          >
+            ✕
+          </button>
         </span>
       ))}
       <input

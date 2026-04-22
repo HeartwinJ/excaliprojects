@@ -6,19 +6,7 @@
 }
 
 .tag-editor__chip {
-  position: relative;
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--color-text-soft);
-  line-height: 1.5;
-  padding: 2px 8px;
-}
-.tag-editor__chip-inner {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  cursor: default;
 }
 .tag-editor__chip button {
   appearance: none;
@@ -27,8 +15,9 @@
   cursor: pointer;
   color: var(--color-muted);
   font-size: 10px;
-  padding: 0;
+  padding: 0 2px;
   line-height: 1;
+  font-family: inherit;
 }
 .tag-editor__chip button:hover {
   color: var(--color-rose);

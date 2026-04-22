@@ -1,19 +1,25 @@
 import type { CSSProperties, ReactNode } from "react";
-import { SketchBorder } from "./SketchBorder";
 
 type Props = {
   children: ReactNode;
   tone?: string;
+  background?: string;
+  borderColor?: string;
   hash?: boolean;
   style?: CSSProperties;
   onClick?: () => void;
   title?: string;
 };
 
-/** Small sketch-bordered pill for tags, filter chips, etc. */
+/**
+ * Flat pill used for tags and small badges. Intentionally *not* sketched —
+ * the wobbly SVG filter distorts tight pill radii too aggressively.
+ */
 export function Tag({
   children,
   tone,
+  background,
+  borderColor,
   hash = true,
   style,
   onClick,
@@ -23,28 +29,17 @@ export function Tag({
     <span
       title={title}
       onClick={onClick}
+      className="pill"
       style={{
-        position: "relative",
-        display: "inline-block",
-        fontSize: 10.5,
-        lineHeight: 1.5,
-        padding: "2px 8px",
-        fontFamily: "var(--font-mono)",
         color: tone ?? "var(--color-text-soft)",
+        background: background ?? "var(--color-panel-lo)",
+        borderColor: borderColor ?? "var(--color-line-hi)",
         cursor: onClick ? "pointer" : undefined,
         ...style,
       }}
     >
-      <SketchBorder
-        radius={999}
-        stroke="var(--color-line-hi)"
-        fill="var(--color-panel-lo)"
-        wobble={1.0}
-      />
-      <span style={{ position: "relative" }}>
-        {hash ? "#" : ""}
-        {children}
-      </span>
+      {hash ? "#" : ""}
+      {children}
     </span>
   );
 }
