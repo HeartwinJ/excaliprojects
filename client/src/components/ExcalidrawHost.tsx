@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type {
   AppState,
   BinaryFiles,
   ExcalidrawImperativeAPI,
 } from "@excalidraw/excalidraw/types/types";
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
-import { Excalidraw, THEME } from "@excalidraw/excalidraw";
+import type { LibraryItems } from "@excalidraw/excalidraw/types/types";
+import { Excalidraw, MainMenu, THEME } from "@excalidraw/excalidraw";
 
 export interface SceneSnapshot {
   elements: readonly ExcalidrawElement[];
@@ -18,6 +19,7 @@ interface ExcalidrawHostProps {
   theme: "light" | "dark";
   libraryItems?: unknown[];
   viewModeEnabled?: boolean;
+  menu?: ReactNode;
   onChange: (scene: SceneSnapshot) => void;
   onReady?: (api: ExcalidrawImperativeAPI) => void;
 }
@@ -27,6 +29,7 @@ export function ExcalidrawHost({
   theme,
   libraryItems,
   viewModeEnabled,
+  menu,
   onChange,
   onReady,
 }: ExcalidrawHostProps): JSX.Element {
@@ -60,6 +63,19 @@ export function ExcalidrawHost({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialScene]);
 
+  // Push library items imperatively when they arrive / change after mount.
+  // `initialData.libraryItems` is only read on the first mount, so without
+  // this the library panel stays empty if the fetch resolves late.
+  useEffect(() => {
+    const api = apiRef.current;
+    if (!api || !libraryItems || libraryItems.length === 0) return;
+    void api.updateLibrary({
+      libraryItems: libraryItems as LibraryItems,
+      merge: false,
+      openLibraryMenu: false,
+    });
+  }, [libraryItems]);
+
   return (
     <Excalidraw
       key={key}
@@ -81,8 +97,17 @@ export function ExcalidrawHost({
       }}
       excalidrawAPI={(api) => {
         apiRef.current = api;
+        if (libraryItems && libraryItems.length > 0) {
+          void api.updateLibrary({
+            libraryItems: libraryItems as LibraryItems,
+            merge: false,
+            openLibraryMenu: false,
+          });
+        }
         onReady?.(api);
       }}
-    />
+    >
+      {menu != null ? <MainMenu>{menu}</MainMenu> : null}
+    </Excalidraw>
   );
 }
