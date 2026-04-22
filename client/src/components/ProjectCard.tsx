@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { SketchCard } from "./sketch/SketchCard";
 import { SketchBorder } from "./sketch/SketchBorder";
+import { Menu } from "./Menu";
 import "./ProjectCard.css";
 
 const SWATCHES = [
@@ -24,6 +25,7 @@ interface ProjectCardProps {
   name: string;
   boardCount?: number;
   updatedLabel?: string;
+  tags?: { id: string; name: string }[];
   onRename: () => void;
   onDelete: () => void;
 }
@@ -33,6 +35,7 @@ export function ProjectCard({
   name,
   boardCount,
   updatedLabel,
+  tags,
   onRename,
   onDelete,
 }: ProjectCardProps): JSX.Element {
@@ -71,29 +74,38 @@ export function ProjectCard({
           </span>
           {updatedLabel && <span>{updatedLabel}</span>}
         </div>
+        {tags && tags.length > 0 && (
+          <div className="project-card__tags">
+            {tags.slice(0, 3).map((t) => (
+              <span key={t.id} className="pill">
+                #{t.name}
+              </span>
+            ))}
+            {tags.length > 3 && (
+              <span className="project-card__tag-more mono">
+                +{tags.length - 3}
+              </span>
+            )}
+          </div>
+        )}
       </Link>
       <div className="project-card__actions">
-        <button
-          type="button"
-          className="project-card__action"
-          aria-label={`Rename ${name}`}
-          title="Rename"
-          onClick={onRename}
-        >
-          Rename
-        </button>
-        <span className="project-card__sep" aria-hidden>
-          ·
-        </span>
-        <button
-          type="button"
-          className="project-card__action project-card__action--danger"
-          aria-label={`Delete ${name}`}
-          title="Delete"
-          onClick={onDelete}
-        >
-          Delete
-        </button>
+        <Menu
+          trigger={
+            <button
+              type="button"
+              className="kebab-btn"
+              aria-label={`Actions for ${name}`}
+              title="Actions"
+            >
+              ⋯
+            </button>
+          }
+          items={[
+            { key: "rename", label: "Rename", onSelect: onRename },
+            { key: "delete", label: "Delete", onSelect: onDelete, danger: true },
+          ]}
+        />
       </div>
     </SketchCard>
   );

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { BoardSummary } from "../api/boards";
 import { SketchCard } from "./sketch/SketchCard";
 import { GridBackdrop } from "./sketch/GridBackdrop";
+import { Menu } from "./Menu";
 import "./BoardCard.css";
 
 interface BoardCardProps {
@@ -23,6 +24,7 @@ export function BoardCard({
     dateStyle: "medium",
     timeStyle: "short",
   });
+  const tags = board.tags ?? [];
 
   return (
     <SketchCard
@@ -37,11 +39,13 @@ export function BoardCard({
         className="board-card__thumb"
         aria-label={`Open ${board.name}`}
       >
-        <GridBackdrop opacity={0.06} size={16} />
         {board.thumbnail_path ? (
           <img src={board.thumbnail_path} alt="" />
         ) : (
-          <BoardThumbSketch seed={board.name.length} />
+          <>
+            <GridBackdrop opacity={0.06} size={16} />
+            <BoardThumbSketch seed={board.name.length} />
+          </>
         )}
       </Link>
       <div className="board-card__body">
@@ -58,23 +62,39 @@ export function BoardCard({
           >
             {board.is_favorite ? "★" : "☆"}
           </button>
+          <Menu
+            trigger={
+              <button
+                type="button"
+                className="kebab-btn"
+                aria-label={`Actions for ${board.name}`}
+                title="Actions"
+              >
+                ⋯
+              </button>
+            }
+            items={[
+              { key: "rename", label: "Rename", onSelect: onRename },
+              { key: "duplicate", label: "Duplicate", onSelect: onDuplicate },
+              { key: "delete", label: "Delete", onSelect: onDelete, danger: true },
+            ]}
+          />
         </div>
         <div className="board-card__meta mono">Updated {updated}</div>
-        <div className="board-card__actions">
-          <button type="button" className="board-card__btn" onClick={onRename}>
-            Rename
-          </button>
-          <button type="button" className="board-card__btn" onClick={onDuplicate}>
-            Duplicate
-          </button>
-          <button
-            type="button"
-            className="board-card__btn board-card__btn--danger"
-            onClick={onDelete}
-          >
-            Delete
-          </button>
-        </div>
+        {tags.length > 0 && (
+          <div className="board-card__tags">
+            {tags.slice(0, 4).map((t) => (
+              <span key={t.id} className="pill">
+                #{t.name}
+              </span>
+            ))}
+            {tags.length > 4 && (
+              <span className="board-card__tag-more mono">
+                +{tags.length - 4}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </SketchCard>
   );

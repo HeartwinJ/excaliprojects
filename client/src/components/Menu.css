@@ -1,0 +1,89 @@
+.menu-root {
+  position: relative;
+  display: inline-flex;
+}
+
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  min-width: 140px;
+  z-index: 30;
+  background: var(--color-panel-hi);
+  border: 1px solid var(--color-line-hi);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.menu-panel--right {
+  right: 0;
+}
+.menu-panel--left {
+  left: 0;
+}
+
+.menu-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-soft);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  line-height: 1.2;
+}
+.menu-item:hover:not(:disabled),
+.menu-item:focus-visible:not(:disabled) {
+  background: var(--color-panel-lo);
+  color: var(--color-text);
+  outline: none;
+}
+.menu-item:disabled {
+  color: var(--color-muted-dim);
+  cursor: not-allowed;
+}
+
+.menu-item--danger {
+  color: var(--color-rose);
+}
+.menu-item--danger:hover:not(:disabled),
+.menu-item--danger:focus-visible:not(:disabled) {
+  background: rgba(232, 138, 138, 0.08);
+  color: var(--color-rose);
+}
+
+.menu-item__icon {
+  display: inline-flex;
+  width: 14px;
+  justify-content: center;
+  color: var(--color-muted);
+}
+
+/* Kebab trigger used by cards */
+.kebab-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.kebab-btn:hover,
+.kebab-btn[aria-expanded="true"] {
+  color: var(--color-text);
+  background: var(--color-panel-hi);
+}
