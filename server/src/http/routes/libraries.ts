@@ -4,6 +4,7 @@ import {
   createLibrary,
   deleteLibrary,
   getLibrary,
+  getLibraryItems,
   getMergedLibraryItems,
   listLibraries,
 } from "../../repos/libraries.js";
@@ -30,6 +31,22 @@ librariesRouter.get("/api/libraries/:id", requireAuth, async (req, res) => {
   }
   res.json(lib);
 });
+
+librariesRouter.get(
+  "/api/libraries/:id/items",
+  requireAuth,
+  async (req, res) => {
+    const items = await getLibraryItems(
+      req.params.id!,
+      req.session.userId!
+    );
+    if (!items) {
+      res.status(404).json({ error: "not found" });
+      return;
+    }
+    res.json(items);
+  }
+);
 
 const uploadSchema = z.object({
   name: z.string().trim().min(1).max(150),

@@ -33,6 +33,7 @@
   margin: 8px 0 0;
   color: var(--color-muted);
   font-size: 13px;
+  max-width: 52ch;
 }
 
 .libraries__error {
@@ -67,9 +68,11 @@
   font-size: 12.5px;
 }
 
-.libraries__grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+/* ——— List + card ——— */
+
+.libraries__list {
+  display: flex;
+  flex-direction: column;
   gap: 18px;
 }
 
@@ -78,11 +81,13 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
+  margin-bottom: 16px;
 }
 .libraries__card-title {
   font-family: var(--font-display);
   font-size: 22px;
   line-height: 1.1;
+  color: var(--color-text);
 }
 .libraries__card-meta {
   margin-top: 3px;
@@ -101,33 +106,62 @@
 .libraries__card-action:hover {
   color: var(--color-rose);
 }
+.libraries__card-loading {
+  color: var(--color-muted);
+  font-size: 12px;
+  padding: 12px 0;
+}
 
-.libraries__card-shapes {
+/* ——— Component grid ——— */
+
+.libraries__shapes {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
-  margin-top: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
 }
 
 .libraries__shape {
   position: relative;
   aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 6px;
+  overflow: hidden;
+}
+.libraries__shape-canvas {
+  position: relative;
+  flex: 1;
   display: grid;
   place-items: center;
+  min-height: 0;
 }
-.libraries__shape svg {
+.libraries__shape-canvas svg {
+  max-width: 100%;
+  max-height: 100%;
+}
+.libraries__shape-label {
   position: relative;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--color-muted);
+  margin-top: 4px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @media (max-width: 640px) {
   .libraries__inner {
     padding: 28px 18px;
   }
-  .libraries__grid {
-    grid-template-columns: 1fr;
-  }
   .libraries__head {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .libraries__shapes {
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
   }
 }

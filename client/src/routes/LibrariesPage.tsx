@@ -1,24 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { librariesApi, type LibrarySummary } from "../api/libraries";
+import { exportToSvg } from "@excalidraw/excalidraw";
+import type { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
+import {
+  librariesApi,
+  type LibraryItem,
+  type LibrarySummary,
+} from "../api/libraries";
 import { ApiError } from "../api/client";
 import { Button } from "../components/Button";
 import { GridBackdrop } from "../components/sketch/GridBackdrop";
 import { SketchBorder } from "../components/sketch/SketchBorder";
 import { SketchCard } from "../components/sketch/SketchCard";
 import "./LibrariesPage.css";
-
-const SWATCHES = [
-  "var(--color-accent)",
-  "var(--color-amber)",
-  "var(--color-mint)",
-  "var(--color-rose)",
-];
-
-function swatchFor(name: string): string {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
-  return SWATCHES[Math.abs(h) % SWATCHES.length]!;
-}
 
 export function LibrariesPage(): JSX.Element {
   const [libs, setLibs] = useState<LibrarySummary[]>([]);
@@ -87,6 +80,7 @@ export function LibrariesPage(): JSX.Element {
             <h1>Libraries</h1>
             <p className="libraries__hint">
               Reusable shapes, icons, and stencils you can drop into any board.
+              Every item here is available in the editor's Library panel.
             </p>
           </div>
           <div>
@@ -134,13 +128,11 @@ export function LibrariesPage(): JSX.Element {
             </div>
           </div>
         ) : (
-          <div className="libraries__grid">
+          <div className="libraries__list">
             {libs.map((l) => (
               <LibraryCard
                 key={l.id}
-                name={l.name}
-                addedAt={l.created_at}
-                swatch={swatchFor(l.name)}
+                library={l}
                 onDelete={() => void handleDelete(l)}
               />
             ))}
@@ -152,84 +144,150 @@ export function LibrariesPage(): JSX.Element {
 }
 
 function LibraryCard({
-  name,
-  addedAt,
-  swatch,
+  library,
   onDelete,
 }: {
-  name: string;
-  addedAt: string;
-  swatch: string;
+  library: LibrarySummary;
   onDelete: () => void;
 }): JSX.Element {
-  const added = new Date(addedAt).toLocaleDateString(undefined, {
+  const [items, setItems] = useState<LibraryItem[] | null>(null);
+  const [itemsError, setItemsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setItemsError(null);
+    void librariesApi
+      .itemsFor(library.id)
+      .then((loaded) => {
+        if (!cancelled) setItems(loaded);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setItemsError(
+          err instanceof ApiError ? err.message : "Failed to load items"
+        );
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [library.id]);
+
+  const added = new Date(library.created_at).toLocaleDateString(undefined, {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+  const count = items?.length;
+
   return (
     <SketchCard
       radius={14}
       wobble={1.4}
-      seed={name.length}
+      seed={library.name.length}
       fill="var(--color-panel)"
       style={{ padding: 18 }}
     >
       <div className="libraries__card-head">
         <div>
-          <div
-            className="libraries__card-title"
-            style={{ color: "var(--color-text)" }}
-          >
-            {name}
+          <div className="libraries__card-title">{library.name}</div>
+          <div className="libraries__card-meta mono">
+            {count !== undefined && (
+              <>
+                {count} component{count === 1 ? "" : "s"} · added {added}
+              </>
+            )}
+            {count === undefined && <>added {added}</>}
           </div>
-          <div className="libraries__card-meta mono">added {added}</div>
         </div>
         <button
           type="button"
           className="libraries__card-action"
           onClick={onDelete}
-          aria-label={`Delete ${name}`}
+          aria-label={`Delete ${library.name}`}
         >
           Delete
         </button>
       </div>
-      <div className="libraries__card-shapes" aria-hidden>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <ShapeSlot key={i} index={i} stroke={swatch} />
-        ))}
-      </div>
+
+      {itemsError && <div className="libraries__error mono">{itemsError}</div>}
+
+      {items === null && !itemsError && (
+        <div className="libraries__card-loading mono">Loading components…</div>
+      )}
+
+      {items && items.length === 0 && (
+        <div className="libraries__card-loading mono">
+          This library has no components.
+        </div>
+      )}
+
+      {items && items.length > 0 && (
+        <div className="libraries__shapes">
+          {items.map((item) => (
+            <LibraryItemPreview key={item.id} item={item} />
+          ))}
+        </div>
+      )}
     </SketchCard>
   );
 }
 
-function ShapeSlot({
-  index,
-  stroke,
-}: {
-  index: number;
-  stroke: string;
-}): JSX.Element {
+function LibraryItemPreview({ item }: { item: LibraryItem }): JSX.Element {
+  const holderRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const holder = holderRef.current;
+    if (!holder) return;
+    holder.innerHTML = "";
+
+    (async () => {
+      try {
+        const svg = await exportToSvg({
+          elements: item.elements as readonly ExcalidrawElement[],
+          appState: {
+            exportBackground: false,
+            exportWithDarkMode: false,
+            viewBackgroundColor: "transparent",
+          },
+          files: {},
+          exportPadding: 8,
+        });
+        if (cancelled) return;
+        // Let the parent control sizing; the exportToSvg output carries its
+        // own width/height attributes that we strip so the SVG scales.
+        svg.removeAttribute("width");
+        svg.removeAttribute("height");
+        svg.setAttribute(
+          "style",
+          "width:100%;height:100%;display:block;"
+        );
+        holder.appendChild(svg);
+      } catch (err) {
+        if (cancelled) return;
+        console.warn("library item preview failed", err);
+        holder.innerHTML = "";
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [item]);
+
   return (
-    <div className="libraries__shape">
+    <div
+      className="libraries__shape"
+      title={item.name ?? "Library item"}
+    >
       <SketchBorder
         radius={6}
         stroke="var(--color-line)"
         fill="var(--color-panel-lo)"
         wobble={1.1}
       />
-      <svg viewBox="0 0 32 32" width={22} height={22}>
-        <g fill="none" stroke={stroke} strokeWidth={1.3} strokeLinecap="round">
-          {index === 0 && <rect x={6} y={8} width={20} height={16} rx={2} />}
-          {index === 1 && <circle cx={16} cy={16} r={9} />}
-          {index === 2 && <path d="M16,5 L27,16 L16,27 L5,16 Z" />}
-          {index === 3 && <path d="M6,22 L14,12 L20,18 L26,8" />}
-          {index === 4 && <path d="M6,16 L22,16 M18,12 L22,16 L18,20" />}
-          {index === 5 && (
-            <path d="M10,10 L22,10 M10,16 L22,16 M10,22 L18,22" />
-          )}
-        </g>
-      </svg>
+      <div ref={holderRef} className="libraries__shape-canvas" />
+      {item.name && <div className="libraries__shape-label">{item.name}</div>}
     </div>
   );
 }

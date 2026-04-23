@@ -36,20 +36,28 @@ function stableItemId(libraryId: string, index: number): string {
  * in Excalidraw's v2 shape. Handles:
  *   - v2 `.excalidrawlib`: `{ libraryItems: [ { id, status, elements, created } ] }`
  *   - v1 `.excalidrawlib`: `{ library: [ [elements], [elements] ] }` — converted.
- *   - Items lacking `status` / `created` — filled with sensible defaults so
- *     Excalidraw accepts them.
+ *
+ * Every item is forced to `status: "unpublished"` so the editor shows a
+ * single "Personal Library" section rather than splitting items between
+ * "Personal Library" and "Excalidraw Library" based on the file's origin.
+ * This is a self-hosted, single-user app — the community/registry split
+ * Excalidraw draws is just noise here.
+ *
+ * The source-library grouping (e.g. "Flowchart essentials" vs "UI wireframes")
+ * is surfaced on the /libraries page instead, where the names make sense.
  */
 export async function getMergedLibraryItems(
   ownerId: string
 ): Promise<LibraryItemShape[]> {
   const { rows } = await pool.query<{
     id: string;
+    name: string;
     data_json: {
       libraryItems?: unknown[];
       library?: unknown[];
     } | null;
   }>(
-    "select id, data_json from libraries where owner_id = $1 order by updated_at desc",
+    "select id, name, data_json from libraries where owner_id = $1 order by updated_at desc",
     [ownerId]
   );
 
@@ -68,9 +76,12 @@ export async function getMergedLibraryItems(
             typeof item.id === "string" && item.id.length > 0
               ? item.id
               : stableItemId(row.id, i),
-          status: item.status === "published" ? "published" : "unpublished",
+          status: "unpublished",
           created: typeof item.created === "number" ? item.created : Date.now(),
-          name: typeof item.name === "string" ? item.name : undefined,
+          name:
+            typeof item.name === "string" && item.name.length > 0
+              ? item.name
+              : undefined,
           elements: item.elements,
         });
       });
@@ -121,4 +132,54 @@ export async function getLibrary(
     [id, ownerId]
   );
   return rows[0];
+}
+
+/**
+ * Items for a single library, normalised to v2 shape + coerced to
+ * `unpublished` status (see `getMergedLibraryItems` for the rationale).
+ */
+export async function getLibraryItems(
+  id: string,
+  ownerId: string
+): Promise<LibraryItemShape[] | undefined> {
+  const lib = await getLibrary(id, ownerId);
+  if (!lib) return undefined;
+  const data = lib.data_json as {
+    libraryItems?: unknown[];
+    library?: unknown[];
+  } | null;
+  if (!data) return [];
+
+  const items: LibraryItemShape[] = [];
+  if (Array.isArray(data.libraryItems)) {
+    data.libraryItems.forEach((raw, i) => {
+      if (!raw || typeof raw !== "object") return;
+      const item = raw as Partial<LibraryItemShape> & { elements?: unknown };
+      if (!Array.isArray(item.elements)) return;
+      items.push({
+        id:
+          typeof item.id === "string" && item.id.length > 0
+            ? item.id
+            : stableItemId(lib.id, i),
+        status: "unpublished",
+        created: typeof item.created === "number" ? item.created : Date.now(),
+        name:
+          typeof item.name === "string" && item.name.length > 0
+            ? item.name
+            : undefined,
+        elements: item.elements,
+      });
+    });
+  } else if (Array.isArray(data.library)) {
+    data.library.forEach((group, i) => {
+      if (!Array.isArray(group)) return;
+      items.push({
+        id: stableItemId(lib.id, i),
+        status: "unpublished",
+        created: Date.now(),
+        elements: group,
+      });
+    });
+  }
+  return items;
 }
