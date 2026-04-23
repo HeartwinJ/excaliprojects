@@ -57,7 +57,10 @@ export async function getMergedLibraryItems(
       library?: unknown[];
     } | null;
   }>(
-    "select id, name, data_json from libraries where owner_id = $1 order by updated_at desc",
+    // Alphabetical by library name so each library's items stay contiguous
+    // in the Excalidraw panel — a cheap approximation of grouping, since
+    // the built-in panel doesn't support header rows between items.
+    "select id, name, data_json from libraries where owner_id = $1 order by name asc",
     [ownerId]
   );
 
@@ -65,12 +68,17 @@ export async function getMergedLibraryItems(
   for (const row of rows) {
     const lib = row.data_json;
     if (!lib) continue;
+    const libName = row.name;
 
     if (Array.isArray(lib.libraryItems)) {
       lib.libraryItems.forEach((raw, i) => {
         if (!raw || typeof raw !== "object") return;
         const item = raw as Partial<LibraryItemShape> & { elements?: unknown };
         if (!Array.isArray(item.elements)) return;
+        const rawName =
+          typeof item.name === "string" && item.name.length > 0
+            ? item.name
+            : `#${i + 1}`;
         items.push({
           id:
             typeof item.id === "string" && item.id.length > 0
@@ -78,10 +86,9 @@ export async function getMergedLibraryItems(
               : stableItemId(row.id, i),
           status: "unpublished",
           created: typeof item.created === "number" ? item.created : Date.now(),
-          name:
-            typeof item.name === "string" && item.name.length > 0
-              ? item.name
-              : undefined,
+          // Prefix with the source library so hovers/tooltips make the
+          // origin obvious even though Excalidraw can't render headers.
+          name: `${libName} · ${rawName}`,
           elements: item.elements,
         });
       });
@@ -93,6 +100,7 @@ export async function getMergedLibraryItems(
           id: stableItemId(row.id, i),
           status: "unpublished",
           created: Date.now(),
+          name: `${libName} · #${i + 1}`,
           elements: group,
         });
       });
