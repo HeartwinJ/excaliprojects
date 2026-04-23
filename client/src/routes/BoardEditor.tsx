@@ -245,22 +245,10 @@ export function BoardEditor(): JSX.Element {
           onChange={handleChange}
           menu={
             <>
-              <MainMenu.Group title="Board">
-                <MainMenu.Item onSelect={() => navigate(boardPath)}>
-                  Back to project
-                </MainMenu.Item>
-                <MainMenu.Item onSelect={() => navigate("/")}>
-                  Dashboard
-                </MainMenu.Item>
-              </MainMenu.Group>
-              <MainMenu.Separator />
-              <MainMenu.Group title="Canvas">
+              <MainMenu.Group title="This board">
                 <MainMenu.DefaultItems.SaveAsImage />
                 <MainMenu.DefaultItems.ChangeCanvasBackground />
                 <MainMenu.DefaultItems.ClearCanvas />
-              </MainMenu.Group>
-              <MainMenu.Separator />
-              <MainMenu.Group title="This board">
                 <MainMenu.Item onSelect={() => setHistoryOpen(true)}>
                   Version history…
                 </MainMenu.Item>
@@ -270,6 +258,9 @@ export function BoardEditor(): JSX.Element {
               </MainMenu.Group>
               <MainMenu.Separator />
               <MainMenu.Group title="Workspace">
+                <MainMenu.Item onSelect={() => navigate("/")}>
+                  Dashboard
+                </MainMenu.Item>
                 <MainMenu.Item onSelect={() => navigate("/libraries")}>
                   Libraries
                 </MainMenu.Item>
