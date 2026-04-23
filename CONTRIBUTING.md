@@ -42,4 +42,4 @@ docker compose up -d --build
 
 ## Releasing
 
-Tag a commit on `master` with `vX.Y.Z` (semver). The `publish` workflow will build a multi-arch image and push to `ghcr.io/<owner>/excaliprojects` with `latest`, `vX.Y.Z`, `vX.Y`, and `vX` tags.
+Tag a commit on `master` with `vX.Y.Z` (semver). The `publish` workflow will build a multi-arch image and push to `ghcr.io/heartwinj/excaliprojects` with `latest`, `vX.Y.Z`, `vX.Y`, and `vX` tags.

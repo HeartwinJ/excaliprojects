@@ -55,7 +55,7 @@ If you need any of those, use [Excalidraw+](https://plus.excalidraw.com/).
 ### Run
 
 ```bash
-git clone https://github.com/<you>/excaliprojects.git
+git clone https://github.com/HeartwinJ/excaliprojects.git
 cd excaliprojects
 
 cp .env.example .env
