@@ -5,7 +5,11 @@ import { boardsApi, type Board } from "../api/boards";
 import { librariesApi } from "../api/libraries";
 import { ApiError } from "../api/client";
 import { useTheme } from "../theme/ThemeProvider";
-import { ExcalidrawHost, type SceneSnapshot } from "../components/ExcalidrawHost";
+import {
+  ExcalidrawHost,
+  type ExcalidrawHostHandle,
+  type SceneSnapshot,
+} from "../components/ExcalidrawHost";
 import { TagEditor } from "../components/TagEditor";
 import { HistoryPanel } from "../components/HistoryPanel";
 import { ShareDialog } from "../components/ShareDialog";
@@ -41,6 +45,7 @@ export function BoardEditor(): JSX.Element {
   }, []);
 
   const pendingScene = useRef<SceneSnapshot | null>(null);
+  const hostRef = useRef<ExcalidrawHostHandle | null>(null);
   // Last element-version we've seen; used to skip spurious onChange fires
   // (cursor moves, selection) that would otherwise flip us to "dirty".
   const lastElementsVersion = useRef<number | null>(null);
@@ -227,6 +232,14 @@ export function BoardEditor(): JSX.Element {
           <Button
             size="sm"
             variant="ghost"
+            onClick={() => hostRef.current?.toggleComponentSidebar()}
+            title="Toggle component library"
+          >
+            Components
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
             onClick={() => setHistoryOpen(true)}
           >
             History
@@ -239,9 +252,11 @@ export function BoardEditor(): JSX.Element {
       </div>
       <div className="board-editor__canvas">
         <ExcalidrawHost
+          ref={hostRef}
           initialScene={initialScene}
           theme={theme}
           libraryItems={libraryItems}
+          componentSidebarEnabled
           onChange={handleChange}
           menu={
             <>

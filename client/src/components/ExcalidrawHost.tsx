@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type {
   AppState,
   BinaryFiles,
@@ -6,12 +14,18 @@ import type {
 } from "@excalidraw/excalidraw/types/types";
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import type { LibraryItems } from "@excalidraw/excalidraw/types/types";
-import { Excalidraw, MainMenu, THEME } from "@excalidraw/excalidraw";
+import { Excalidraw, MainMenu, Sidebar, THEME } from "@excalidraw/excalidraw";
+import { LibraryGroupSidebar } from "./LibraryGroupSidebar";
 
 export interface SceneSnapshot {
   elements: readonly ExcalidrawElement[];
   appState: Partial<AppState>;
   files: BinaryFiles;
+}
+
+/** Imperative handle exposed to parent components. */
+export interface ExcalidrawHostHandle {
+  toggleComponentSidebar: () => void;
 }
 
 interface ExcalidrawHostProps {
@@ -20,21 +34,51 @@ interface ExcalidrawHostProps {
   libraryItems?: unknown[];
   viewModeEnabled?: boolean;
   menu?: ReactNode;
+  /**
+   * When true, mounts an extra "Components" sidebar with per-library groups.
+   * Not wanted on the public read-only share view.
+   */
+  componentSidebarEnabled?: boolean;
+  /**
+   * Bumped by parent whenever libraries may have changed (upload/delete)
+   * so the component sidebar can re-fetch its groups.
+   */
+  librariesToken?: number;
   onChange: (scene: SceneSnapshot) => void;
   onReady?: (api: ExcalidrawImperativeAPI) => void;
 }
 
-export function ExcalidrawHost({
-  initialScene,
-  theme,
-  libraryItems,
-  viewModeEnabled,
-  menu,
-  onChange,
-  onReady,
-}: ExcalidrawHostProps): JSX.Element {
+export const COMPONENT_SIDEBAR_NAME = "excaliprojects-components";
+
+export const ExcalidrawHost = forwardRef<
+  ExcalidrawHostHandle,
+  ExcalidrawHostProps
+>(function ExcalidrawHost(
+  {
+    initialScene,
+    theme,
+    libraryItems,
+    viewModeEnabled,
+    menu,
+    componentSidebarEnabled = false,
+    librariesToken,
+    onChange,
+    onReady,
+  },
+  ref
+) {
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const [key, setKey] = useState(0);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      toggleComponentSidebar: () => {
+        apiRef.current?.toggleSidebar({ name: COMPONENT_SIDEBAR_NAME });
+      },
+    }),
+    []
+  );
 
   const initialData = useMemo(() => {
     const base = initialScene ?? { elements: [], appState: {}, files: {} };
@@ -64,8 +108,6 @@ export function ExcalidrawHost({
   }, [initialScene]);
 
   // Push library items imperatively when they arrive / change after mount.
-  // `initialData.libraryItems` is only read on the first mount, so without
-  // this the library panel stays empty if the fetch resolves late.
   useEffect(() => {
     const api = apiRef.current;
     if (!api || !libraryItems || libraryItems.length === 0) return;
@@ -108,6 +150,17 @@ export function ExcalidrawHost({
       }}
     >
       {menu != null ? <MainMenu>{menu}</MainMenu> : null}
+      {componentSidebarEnabled && (
+        <Sidebar name={COMPONENT_SIDEBAR_NAME}>
+          <Sidebar.Header>
+            <span className="libsidebar__title">Components</span>
+          </Sidebar.Header>
+          <LibraryGroupSidebar
+            apiRef={apiRef}
+            refreshToken={librariesToken}
+          />
+        </Sidebar>
+      )}
     </Excalidraw>
   );
-}
+});

@@ -75,10 +75,6 @@ export async function getMergedLibraryItems(
         if (!raw || typeof raw !== "object") return;
         const item = raw as Partial<LibraryItemShape> & { elements?: unknown };
         if (!Array.isArray(item.elements)) return;
-        const rawName =
-          typeof item.name === "string" && item.name.length > 0
-            ? item.name
-            : `#${i + 1}`;
         items.push({
           id:
             typeof item.id === "string" && item.id.length > 0
@@ -86,9 +82,10 @@ export async function getMergedLibraryItems(
               : stableItemId(row.id, i),
           status: "unpublished",
           created: typeof item.created === "number" ? item.created : Date.now(),
-          // Prefix with the source library so hovers/tooltips make the
-          // origin obvious even though Excalidraw can't render headers.
-          name: `${libName} · ${rawName}`,
+          name:
+            typeof item.name === "string" && item.name.length > 0
+              ? item.name
+              : undefined,
           elements: item.elements,
         });
       });
@@ -100,11 +97,11 @@ export async function getMergedLibraryItems(
           id: stableItemId(row.id, i),
           status: "unpublished",
           created: Date.now(),
-          name: `${libName} · #${i + 1}`,
           elements: group,
         });
       });
     }
+    void libName;
   }
   return items;
 }
