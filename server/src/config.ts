@@ -27,7 +27,7 @@ const schema = z.object({
   SHARE_LINKS_ENABLED: z
     .string()
     .transform((v) => v.toLowerCase() === "true")
-    .default("true"),
+    .default(true),
 });
 
 const parsed = schema.safeParse(process.env);
