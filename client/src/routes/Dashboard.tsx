@@ -257,7 +257,7 @@ export function Dashboard(): JSX.Element {
               <section className="dashboard__section">
                 <SectionHeading title="Recent boards" meta="across all projects" />
                 <div className="dashboard__grid dashboard__grid--boards">
-                  {recent.map((b) => (
+                  {recent.slice(0, 4).map((b) => (
                     <BoardCard
                       key={b.id}
                       board={b}
