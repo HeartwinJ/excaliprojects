@@ -4,6 +4,26 @@ All notable changes to Excaliprojects are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.2] — 2026-04-25
+
+### Fixed
+
+- Restore the `@excalidraw/excalidraw/index.css` import in
+  `client/src/main.tsx` that was accidentally dropped earlier. Without
+  the stylesheet the `.excalidraw` container had no `width` / `height` /
+  `overflow` rules, so its child canvases sized themselves against the
+  document and overflowed the browser's max-canvas-size cap (~11,180 px
+  on Firefox), throwing `CanvasRenderingContext2D.setTransform: Canvas
+  exceeds max size` and preventing any board from opening.
+- Only request `scrollToContent` from `<Excalidraw>` when the scene has
+  at least one element, avoiding a degenerate Excalidraw init code path
+  on freshly created empty boards.
+- Allow `https://esm.sh` in the `font-src` Content-Security-Policy
+  directive so that Excalidraw 0.18.1's hardcoded `ASSETS_FALLBACK_URL`
+  font candidates no longer trigger a flood of CSP violation reports on
+  every board open. Same-origin fonts from the bundled `client/dist/
+  fonts/` directory remain the primary source.
+
 ## [1.0.1] — 2026-04-24
 
 ### Fixed
