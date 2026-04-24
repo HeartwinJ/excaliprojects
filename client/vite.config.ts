@@ -8,8 +8,9 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: "../node_modules/@excalidraw/excalidraw/dist/excalidraw-assets",
-          dest: ".",
+          src: "../node_modules/@excalidraw/excalidraw/dist/prod/fonts/**/*",
+          dest: "fonts",
+          rename: { stripBase: 6 },
         },
       ],
     }),
