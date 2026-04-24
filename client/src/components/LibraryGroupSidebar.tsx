@@ -33,10 +33,23 @@ interface Props {
    * the app — so this sidebar can re-fetch.
    */
   refreshToken?: number;
+  theme: "light" | "dark";
 }
 
+// Excalidraw's built-in default canvas backgrounds — keeping previews in
+// sync with these means an item tile visually matches what you'd see on
+// the real canvas after inserting it.
+const CANVAS_BG = {
+  light: "#ffffff",
+  dark: "#121212",
+} as const;
+
 /** Content for the custom Library sidebar. Grouped by source library. */
-export function LibraryGroupSidebar({ apiRef, refreshToken }: Props): JSX.Element {
+export function LibraryGroupSidebar({
+  apiRef,
+  refreshToken,
+  theme,
+}: Props): JSX.Element {
   const [groups, setGroups] = useState<LibraryGroup[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -79,23 +92,24 @@ export function LibraryGroupSidebar({ apiRef, refreshToken }: Props): JSX.Elemen
     };
   }, [refreshToken]);
 
-  const handleInsert = useCallback(
-    (item: LibraryItem) => {
+  /** Insert an item at a specific viewport point; falls back to viewport centre. */
+  const handleInsertAt = useCallback(
+    (item: LibraryItem, clientX?: number, clientY?: number) => {
       const api = apiRef.current;
       if (!api) return;
       const appState = api.getAppState();
-      // Centre of the viewport in scene coordinates.
-      const center = viewportCoordsToSceneCoords(
-        {
-          clientX: appState.width / 2 + appState.offsetLeft,
-          clientY: appState.height / 2 + appState.offsetTop,
-        },
+      const targetClientX =
+        clientX ?? appState.width / 2 + appState.offsetLeft;
+      const targetClientY =
+        clientY ?? appState.height / 2 + appState.offsetTop;
+      const scenePt = viewportCoordsToSceneCoords(
+        { clientX: targetClientX, clientY: targetClientY },
         appState
       );
       const cloned = cloneLibraryItemElements(
         item.elements as ExcalidrawElement[],
-        center.x,
-        center.y
+        scenePt.x,
+        scenePt.y
       );
       if (cloned.length === 0) return;
       const current = api.getSceneElementsIncludingDeleted();
@@ -111,6 +125,64 @@ export function LibraryGroupSidebar({ apiRef, refreshToken }: Props): JSX.Elemen
     },
     [apiRef]
   );
+
+  const handleInsert = useCallback(
+    (item: LibraryItem) => handleInsertAt(item),
+    [handleInsertAt]
+  );
+
+  // Drag-and-drop state + document-level listeners.
+  // We use a ref + global capture-phase handlers so the Excalidraw canvas
+  // (which has its own DOM tree) accepts drops anywhere over it.
+  const draggedItemRef = useRef<LibraryItem | null>(null);
+
+  useEffect(() => {
+    const onDragOver = (e: DragEvent): void => {
+      if (!draggedItemRef.current) return;
+      const target = e.target as Element | null;
+      if (!target?.closest?.(".excalidraw")) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+    };
+    const onDrop = (e: DragEvent): void => {
+      const item = draggedItemRef.current;
+      if (!item) return;
+      const target = e.target as Element | null;
+      if (!target?.closest?.(".excalidraw")) return;
+      // Beat Excalidraw's own drop handler — it treats stray drops as
+      // file imports and would bail on our internal payload.
+      e.preventDefault();
+      e.stopPropagation();
+      handleInsertAt(item, e.clientX, e.clientY);
+      draggedItemRef.current = null;
+    };
+    document.addEventListener("dragover", onDragOver, true);
+    document.addEventListener("drop", onDrop, true);
+    return () => {
+      document.removeEventListener("dragover", onDragOver, true);
+      document.removeEventListener("drop", onDrop, true);
+    };
+  }, [handleInsertAt]);
+
+  const onTileDragStart = useCallback(
+    (e: React.DragEvent<HTMLButtonElement>, item: LibraryItem): void => {
+      draggedItemRef.current = item;
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = "copy";
+        // Some browsers require setData to initiate a drag.
+        e.dataTransfer.setData(
+          "application/x-excaliprojects-item",
+          item.id
+        );
+        e.dataTransfer.setData("text/plain", item.name ?? item.id);
+      }
+    },
+    []
+  );
+
+  const onTileDragEnd = useCallback((): void => {
+    draggedItemRef.current = null;
+  }, []);
 
   const filteredGroups = useMemo(() => {
     if (!groups) return null;
@@ -200,7 +272,10 @@ export function LibraryGroupSidebar({ apiRef, refreshToken }: Props): JSX.Elemen
                   <LibraryItemTile
                     key={item.id}
                     item={item}
+                    theme={theme}
                     onInsert={handleInsert}
+                    onDragStart={onTileDragStart}
+                    onDragEnd={onTileDragEnd}
                   />
                 ))}
               </div>
@@ -214,12 +289,22 @@ export function LibraryGroupSidebar({ apiRef, refreshToken }: Props): JSX.Elemen
 
 function LibraryItemTile({
   item,
+  theme,
   onInsert,
+  onDragStart,
+  onDragEnd,
 }: {
   item: LibraryItem;
+  theme: "light" | "dark";
   onInsert: (item: LibraryItem) => void;
+  onDragStart: (
+    e: React.DragEvent<HTMLButtonElement>,
+    item: LibraryItem
+  ) => void;
+  onDragEnd: () => void;
 }): JSX.Element {
   const holderRef = useRef<HTMLDivElement | null>(null);
+  const bg = CANVAS_BG[theme];
 
   useEffect(() => {
     let cancelled = false;
@@ -230,12 +315,13 @@ function LibraryItemTile({
       try {
         const svg = await exportToSvg({
           elements: item.elements as readonly ExcalidrawElement[],
-          // Rendered onto a light tile so the item's authored colours
-          // (most libraries assume a white canvas) retain contrast.
+          // Match the current canvas: same background + same stroke
+          // treatment (dark-mode inversion) as the live scene, so what
+          // you see in the tile is what you'll get on insert.
           appState: {
             exportBackground: false,
-            exportWithDarkMode: false,
-            viewBackgroundColor: "#ffffff",
+            exportWithDarkMode: theme === "dark",
+            viewBackgroundColor: bg,
           },
           files: {},
           exportPadding: 4,
@@ -255,7 +341,7 @@ function LibraryItemTile({
     return () => {
       cancelled = true;
     };
-  }, [item]);
+  }, [item, theme, bg]);
 
   const onClick = (e: MouseEvent): void => {
     e.preventDefault();
@@ -267,9 +353,16 @@ function LibraryItemTile({
       type="button"
       className="libsidebar__tile"
       onClick={onClick}
+      draggable
+      onDragStart={(e) => onDragStart(e, item)}
+      onDragEnd={onDragEnd}
       title={item.name ?? "Library item"}
     >
-      <div ref={holderRef} className="libsidebar__tile-canvas" />
+      <div
+        ref={holderRef}
+        className="libsidebar__tile-canvas"
+        style={{ background: bg }}
+      />
       {item.name && <span className="libsidebar__tile-label">{item.name}</span>}
     </button>
   );

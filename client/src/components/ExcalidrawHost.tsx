@@ -182,6 +182,7 @@ export const ExcalidrawHost = forwardRef<
           <LibraryGroupSidebar
             apiRef={apiRef}
             refreshToken={librariesToken}
+            theme={theme}
           />
         </Sidebar>
       )}
