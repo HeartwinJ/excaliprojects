@@ -4,6 +4,18 @@ All notable changes to Excaliprojects are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] — 2026-04-24
+
+### Fixed
+
+- Collapse duplicate React copies in the production bundle that caused a
+  blank screen and `useRef` null-dispatcher error on initial load — added
+  `react` / `react-dom` to the root `overrides` and `resolve.dedupe` to
+  the client Vite config.
+- Regenerate `package-lock.json` on Linux so the musl rolldown native
+  bindings (`linux-x64-musl`, `linux-arm64-musl`) are recorded, unblocking
+  multi-arch Docker builds on Alpine.
+
 ## [1.0.0] — 2026-04-24
 
 Initial public release.
@@ -128,4 +140,5 @@ Initial public release.
 - Dependabot configured for npm and GitHub Actions.
 - Issue / PR templates.
 
+[1.0.1]: https://github.com/HeartwinJ/excaliprojects/releases/tag/v1.0.1
 [1.0.0]: https://github.com/HeartwinJ/excaliprojects/releases/tag/v1.0.0
