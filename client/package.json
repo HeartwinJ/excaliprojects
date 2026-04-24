@@ -10,7 +10,7 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
-    "@excalidraw/excalidraw": "^0.17.6",
+    "@excalidraw/excalidraw": "^0.18.1",
     "@fontsource/caveat": "^5.0.19",
     "@fontsource/inter": "^5.0.19",
     "@fontsource/jetbrains-mono": "^5.0.19",
