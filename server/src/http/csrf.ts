@@ -6,7 +6,7 @@ const useSecureCookie = config.publicUrl.protocol === "https:";
 
 export const {
   doubleCsrfProtection,
-  generateToken,
+  generateCsrfToken,
   invalidCsrfTokenError,
 } = doubleCsrf({
   getSecret: () => config.SESSION_SECRET,
@@ -20,7 +20,7 @@ export const {
   },
   size: 64,
   ignoredMethods: ["GET", "HEAD", "OPTIONS"],
-  getTokenFromRequest: (req: Request) => {
+  getCsrfTokenFromRequest: (req: Request) => {
     const headerToken = req.headers["x-csrf-token"];
     if (typeof headerToken === "string") return headerToken;
     const bodyToken = (req.body as { _csrf?: unknown } | undefined)?._csrf;

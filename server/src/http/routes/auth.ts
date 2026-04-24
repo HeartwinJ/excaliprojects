@@ -7,7 +7,7 @@ import {
   verifyPassword,
   updateThemePreference,
 } from "../../repos/users.js";
-import { doubleCsrfProtection, generateToken } from "../csrf.js";
+import { doubleCsrfProtection, generateCsrfToken } from "../csrf.js";
 import { logger } from "../../logger.js";
 
 export const authRouter = Router();
@@ -31,7 +31,7 @@ authRouter.get("/api/csrf", (req, res) => {
   if (!req.session.csrfInitialised) {
     req.session.csrfInitialised = true;
   }
-  const token = generateToken(req, res, true, false);
+  const token = generateCsrfToken(req, res, { overwrite: true, validateOnReuse: false });
   res.json({ csrfToken: token });
 });
 
