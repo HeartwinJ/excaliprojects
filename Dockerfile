@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # ---------- Build stage ----------
-FROM node:20-alpine AS build
+FROM node:25-alpine AS build
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # ---------- Runtime stage ----------
-FROM node:20-alpine AS runtime
+FROM node:25-alpine AS runtime
 
 ENV NODE_ENV=production
 
