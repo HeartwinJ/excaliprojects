@@ -50,6 +50,17 @@ interface ExcalidrawHostProps {
 
 export const COMPONENT_SIDEBAR_NAME = "excaliprojects-components";
 
+const DOCKED_PREF_KEY = "excaliprojects.components-sidebar-docked";
+
+function readDockedPref(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(DOCKED_PREF_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
 export const ExcalidrawHost = forwardRef<
   ExcalidrawHostHandle,
   ExcalidrawHostProps
@@ -69,6 +80,15 @@ export const ExcalidrawHost = forwardRef<
 ) {
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const [key, setKey] = useState(0);
+  const [sidebarDocked, setSidebarDocked] = useState<boolean>(readDockedPref);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(DOCKED_PREF_KEY, String(sidebarDocked));
+    } catch {
+      /* quota / private mode — ignore */
+    }
+  }, [sidebarDocked]);
 
   useImperativeHandle(
     ref,
@@ -151,7 +171,11 @@ export const ExcalidrawHost = forwardRef<
     >
       {menu != null ? <MainMenu>{menu}</MainMenu> : null}
       {componentSidebarEnabled && (
-        <Sidebar name={COMPONENT_SIDEBAR_NAME}>
+        <Sidebar
+          name={COMPONENT_SIDEBAR_NAME}
+          docked={sidebarDocked}
+          onDock={(next) => setSidebarDocked(next)}
+        >
           <Sidebar.Header>
             <span className="libsidebar__title">Components</span>
           </Sidebar.Header>

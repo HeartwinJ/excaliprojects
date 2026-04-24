@@ -230,18 +230,23 @@ function LibraryItemTile({
       try {
         const svg = await exportToSvg({
           elements: item.elements as readonly ExcalidrawElement[],
+          // Rendered onto a light tile so the item's authored colours
+          // (most libraries assume a white canvas) retain contrast.
           appState: {
             exportBackground: false,
             exportWithDarkMode: false,
-            viewBackgroundColor: "transparent",
+            viewBackgroundColor: "#ffffff",
           },
           files: {},
-          exportPadding: 6,
+          exportPadding: 4,
         });
         if (cancelled) return;
         svg.removeAttribute("width");
         svg.removeAttribute("height");
-        svg.setAttribute("style", "width:100%;height:100%;display:block;");
+        svg.setAttribute(
+          "style",
+          "width:100%;height:100%;display:block;"
+        );
         holder.appendChild(svg);
       } catch {
         if (!cancelled && holder) holder.innerHTML = "";
