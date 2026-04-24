@@ -11,7 +11,7 @@
     "typecheck": "tsc -p . --noEmit"
   },
   "dependencies": {
-    "argon2": "^0.40.3",
+    "argon2": "^0.44.0",
     "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.6",
     "csrf-csrf": "^4.0.3",
