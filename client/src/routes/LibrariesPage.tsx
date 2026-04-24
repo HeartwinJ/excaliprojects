@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { exportToSvg } from "@excalidraw/excalidraw";
-import type { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
+import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import {
   librariesApi,
   type LibraryItem,

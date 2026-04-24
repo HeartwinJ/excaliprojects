@@ -11,9 +11,9 @@ import type {
   AppState,
   BinaryFiles,
   ExcalidrawImperativeAPI,
-} from "@excalidraw/excalidraw/types/types";
-import type { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
-import type { LibraryItems } from "@excalidraw/excalidraw/types/types";
+} from "@excalidraw/excalidraw/types";
+import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
+import type { LibraryItems } from "@excalidraw/excalidraw/types";
 import { Excalidraw, MainMenu, Sidebar, THEME } from "@excalidraw/excalidraw";
 import { LibraryGroupSidebar } from "./LibraryGroupSidebar";
 
