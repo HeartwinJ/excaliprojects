@@ -50,3 +50,58 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  release:
+    # Only draft a release when a semver tag is pushed; skip branch pushes.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: docker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          version="${tag#v}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Extract changelog section for this version
+        id: notes
+        run: |
+          version='${{ steps.version.outputs.version }}'
+          notes_file="$RUNNER_TEMP/release-notes.md"
+
+          # Grab everything between `## [<version>]` and the next top-level
+          # `## [` heading (exclusive). Empty if the version isn't listed.
+          awk -v v="$version" '
+            index($0, "## [" v "]") == 1     { capture = 1; next }
+            capture && index($0, "## [") == 1 { exit }
+            capture                          { print }
+          ' CHANGELOG.md > "$notes_file"
+
+          if [ ! -s "$notes_file" ]; then
+            echo "::warning::No CHANGELOG entry found for version $version — release notes will be empty."
+            printf '_No changelog entry was found for `v%s` at release time._\n' "$version" > "$notes_file"
+          fi
+
+          # Append the images line so users know which tag to pull.
+          {
+            printf '\n---\n\n'
+            printf '**Docker image:** `ghcr.io/%s/excaliprojects:%s`\n' \
+              "${GITHUB_REPOSITORY_OWNER,,}" "$version"
+          } >> "$notes_file"
+
+          echo "notes_file=$notes_file" >> "$GITHUB_OUTPUT"
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body_path: ${{ steps.notes.outputs.notes_file }}
+          draft: true
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
