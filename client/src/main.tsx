@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import { AuthProvider } from "./auth/AuthProvider";
+import "@excalidraw/excalidraw/index.css";
 import "./index.css";
 
 // Tell Excalidraw to load its bundled assets (fonts, icons) from the same origin.

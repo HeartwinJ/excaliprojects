@@ -111,7 +111,7 @@ export const ExcalidrawHost = forwardRef<
       },
       files: base.files,
       libraryItems: (libraryItems ?? []) as never,
-      scrollToContent: true,
+      scrollToContent: base.elements.length > 0,
     };
   }, [initialScene, theme, libraryItems]);
 

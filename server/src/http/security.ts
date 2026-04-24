@@ -9,7 +9,7 @@ export const securityHeaders: RequestHandler = helmet({
       "script-src": ["'self'"],
       "style-src": ["'self'", "'unsafe-inline'"],
       "img-src": ["'self'", "data:", "blob:"],
-      "font-src": ["'self'", "data:"],
+      "font-src": ["'self'", "data:", "https://esm.sh"],
       "connect-src": ["'self'"],
       "worker-src": ["'self'", "blob:"],
     },
