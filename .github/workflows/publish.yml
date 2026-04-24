@@ -8,14 +8,45 @@ permissions:
   contents: read
   packages: write
 
+env:
+  REGISTRY_IMAGE: ghcr.io/heartwinj/excaliprojects
+
 jobs:
-  docker:
+  metadata:
     runs-on: ubuntu-latest
+    outputs:
+      labels: ${{ steps.meta.outputs.labels }}
+      json: ${{ steps.meta.outputs.json }}
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          tags: |
+            # `latest` only on stable (non-prerelease) semver tags.
+            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
+            type=sha,prefix=sha-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+  build:
+    needs: metadata
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            suffix: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            suffix: arm64
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -27,32 +58,112 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/excaliprojects
-          tags: |
-            # `latest` only on stable (non-prerelease) semver tags.
-            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
-            type=sha,prefix=sha-,format=short
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-
-      - name: Build and push
+      - name: Build and push by digest
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          platforms: ${{ matrix.platform }}
+          labels: ${{ needs.metadata.outputs.labels }}
+          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=build-${{ matrix.suffix }}
+          cache-to: type=gha,mode=max,scope=build-${{ matrix.suffix }}
+
+      - name: Export digest
+        run: |
+          mkdir -p "${{ runner.temp }}/digests"
+          digest="${{ steps.build.outputs.digest }}"
+          printf '%s' "${digest#sha256:}" > "${{ runner.temp }}/digests/${{ matrix.suffix }}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.suffix }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    needs: [metadata, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          tags=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< '${{ needs.metadata.outputs.json }}')
+          refs=$(for f in *; do printf '%s@sha256:%s ' "$REGISTRY_IMAGE" "$(cat "$f")"; done)
+          docker buildx imagetools create $tags $refs
+
+      - name: Inspect manifest
+        run: docker buildx imagetools inspect "$REGISTRY_IMAGE:${{ needs.metadata.outputs.version }}"
+
+  # Runs only when an upstream job fails or the workflow is cancelled. Deletes
+  # the specific GHCR digests pushed by this run's `build` legs so partial
+  # failures don't leave orphaned untagged manifests sitting in the registry.
+  # Scoped to the exact digests we know we pushed (from the uploaded artifact
+  # files), so it can never touch children of a healthy manifest list.
+  cleanup:
+    needs: [build, merge]
+    if: ${{ always() && (failure() || cancelled()) }}
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Download digests from this run
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Delete orphaned digests from GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          dir="${{ runner.temp }}/digests"
+          if [ ! -d "$dir" ] || [ -z "$(ls -A "$dir" 2>/dev/null)" ]; then
+            echo "No digests uploaded by this run — nothing to clean up."
+            exit 0
+          fi
+
+          echo "Fetching GHCR package versions for $OWNER/excaliprojects..."
+          versions=$(gh api --paginate \
+            "/users/$OWNER/packages/container/excaliprojects/versions")
+
+          for f in "$dir"/*; do
+            digest="sha256:$(cat "$f")"
+            id=$(jq -r --arg d "$digest" \
+              '.[] | select(.name == $d) | .id' <<<"$versions" | head -n1)
+            if [ -n "$id" ] && [ "$id" != "null" ]; then
+              echo "Deleting version $id ($digest)"
+              gh api -X DELETE \
+                "/users/$OWNER/packages/container/excaliprojects/versions/$id"
+            else
+              echo "No GHCR version for $digest (not pushed, or already removed)."
+            fi
+          done
 
   release:
-    needs: docker
+    needs: merge
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -89,8 +200,7 @@ jobs:
           # Append the images line so users know which tag to pull.
           {
             printf '\n---\n\n'
-            printf '**Docker image:** `ghcr.io/%s/excaliprojects:%s`\n' \
-              "${GITHUB_REPOSITORY_OWNER,,}" "$version"
+            printf '**Docker image:** `%s:%s`\n' "$REGISTRY_IMAGE" "$version"
           } >> "$notes_file"
 
           echo "notes_file=$notes_file" >> "$GITHUB_OUTPUT"
